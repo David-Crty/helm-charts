@@ -50,7 +50,7 @@ spec:
   template:
     metadata:
       labels:
-        app.kubernetes.io/name: consumer-{{ .Values.appName }}
+        app.kubernetes.io/name: consumer-{{ $fullName }}
       annotations:
         rollme: {{ randAlphaNum 5 | quote }}
     spec:
