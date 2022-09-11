@@ -29,10 +29,10 @@ spec:
             - containerPort: {{ .Values.port }}
           envFrom:
             - configMapRef:
-                name: env-configmap-{{ .Values.appName }}
+                name: env-configmap-{{ $fullName }}
           {{- if .Values.envEncrypted }}
             - secretRef:
-                name: env-secret-{{ .Values.appName }}
+                name: env-secret-{{ $fullName }}
           {{- end }}
 {{- if .Values.consumer }}
 ---
@@ -68,10 +68,10 @@ spec:
             {{- end }}
           envFrom:
             - configMapRef:
-                name: env-configmap-{{ .Values.appName }}
+                name: env-configmap-{{ $fullName }}
                   {{- if .Values.envEncrypted }}
             - secretRef:
-                name: env-secret-{{ .Values.appName }}
+                name: env-secret-{{ $fullName }}
                   {{- end }}
 {{- end }}
 {{- if .Values.cronjob }}
