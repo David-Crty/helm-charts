@@ -1,0 +1,13 @@
+appName: demo-app
+image: hello-world
+host: hello-world
+https: false
+dockerConfigJson: ""
+#consumer:
+#  command: echo "hello world"
+#  replicas: 1
+#cronjob:
+#  command: echo "hello world"
+#  schedule: "* * * * *"
+env:
+  FOO: prod

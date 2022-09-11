@@ -1,0 +1,81 @@
+{{- $fullName := include "generic-app.fullname" . -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $fullName }}
+  labels:
+    {{- include "generic-app.labels" . | nindent 4 }}
+spec:
+  ports:
+    - port: 80
+      targetPort: {{ .Values.port }}
+      protocol: TCP
+  selector:
+    {{- include "generic-app.selectorLabels" . | nindent 4 }}
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ $fullName }}
+  labels:
+    {{- include "generic-app.labels" . | nindent 4 }}
+  {{- if .Values.https }}
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    traefik.ingress.kubernetes.io/router.tls: "true"
+  {{- end }}
+spec:
+  {{- if .Values.https }}
+  tls:
+    - secretName: {{ .Values.appName }}-cert
+  {{- end }}
+  rules:
+    - host: {{ .Values.host }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ $fullName }}
+                port:
+                  number: 80
+{{- if .Values.https }}
+---
+# Ingresses
+apiVersion: traefik.containo.us/v1alpha1
+kind: Middleware
+metadata:
+  name: {{ $fullName }}
+  labels:
+    {{- include "generic-app.labels" . | nindent 4 }}
+
+spec:
+  redirectScheme:
+    scheme: https
+    permanent: true
+
+---
+# http ingress for http->https redirection
+kind: Ingress
+apiVersion: networking.k8s.io/v1
+metadata:
+  name: {{ $fullName }}-redirect
+  labels:
+    {{- include "generic-app.labels" . | nindent 4 }}
+  annotations:
+    traefik.ingress.kubernetes.io/router.middlewares: {{ .Release.Namespace }}-{{ $fullName }}-redirect@kubernetescrd
+    traefik.ingress.kubernetes.io/router.entrypoints: web
+spec:
+  rules:
+    - host: {{ .Values.host }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ $fullName }}
+                port:
+                  number: 80
+{{- end }}

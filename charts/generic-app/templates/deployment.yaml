@@ -1,0 +1,120 @@
+{{- $fullName := include "generic-app.fullname" . -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-{{ $fullName }}
+  labels:
+    {{- include "generic-app.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "generic-app.selectorLabels" . | nindent 6 }}
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        {{- include "generic-app.selectorLabels" . | nindent 8 }}
+      annotations:
+        rollme: {{ randAlphaNum 5 | quote }}
+    spec:
+      {{- if .Values.dockerConfigJson }}
+      imagePullSecrets:
+        - name: secret-regcred-{{ $fullName }}
+      {{- end }}
+      containers:
+        - name: {{ .Values.appName }}
+          image: {{ .Values.image }}
+          imagePullPolicy: Always
+          ports:
+            - containerPort: {{ .Values.port }}
+          envFrom:
+            - configMapRef:
+                name: env-configmap-{{ .Values.appName }}
+          {{- if .Values.envEncrypted }}
+            - secretRef:
+                name: env-secret-{{ .Values.appName }}
+          {{- end }}
+{{- if .Values.consumer }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: consumer-{{ $fullName }}
+  labels:
+    {{- include "generic-app.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: consumer-{{ $fullName }}
+  replicas: {{ .Values.consumer.replicas }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: consumer-{{ .Values.appName }}
+      annotations:
+        rollme: {{ randAlphaNum 5 | quote }}
+    spec:
+      {{- if .Values.dockerConfigJson }}
+      imagePullSecrets:
+        - name: secret-regcred-{{ $fullName }}
+      {{- end }}
+      containers:
+        - name: consumer-{{ .Values.appName }}
+          image: {{ .Values.image }}
+          imagePullPolicy: Always
+          command:
+            {{- range (split " " .Values.consumer.command) }}
+            - {{ . }}
+            {{- end }}
+          envFrom:
+            - configMapRef:
+                name: env-configmap-{{ .Values.appName }}
+                  {{- if .Values.envEncrypted }}
+            - secretRef:
+                name: env-secret-{{ .Values.appName }}
+                  {{- end }}
+{{- end }}
+{{- if .Values.cronjob }}
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: cronjob-{{ $fullName }}
+  labels:
+    {{- include "generic-app.labels" . | nindent 4 }}
+spec:
+  schedule: "{{ .Values.cronjob.schedule }}"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          {{- if .Values.dockerConfigJson }}
+          imagePullSecrets:
+            - name: secret-regcred-{{ $fullName }}
+          {{- end }}
+          containers:
+            - name: {{ .Values.appName }}
+              image: {{ .Values.image }}
+              imagePullPolicy: Always
+              command:
+              {{- range (split " " .Values.cronjob.command) }}
+                - {{ . }}
+              {{- end }}
+              envFrom:
+                - configMapRef:
+                    name: env-configmap-{{ $fullName }}
+              {{- if .Values.envEncrypted }}
+                - secretRef:
+                    name: env-secret-{{ $fullName }}
+              {{- end }}
+          restartPolicy: Never
+{{- end }}
+---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: env-configmap-{{ $fullName }}
+data:
+  {{- range $key, $value := .Values.env }}
+  {{ $key }}: "{{ $value }}"
+  {{- end }}

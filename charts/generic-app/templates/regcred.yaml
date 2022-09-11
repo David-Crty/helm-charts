@@ -1,0 +1,9 @@
+{{- if .Values.dockerConfigJson }}
+apiVersion: v1
+kind: Secret
+type: kubernetes.io/dockerconfigjson
+metadata:
+  name: secret-regcred-{{ include "generic-app.fullname" . }}
+data:
+  .dockerconfigjson: {{ .Values.dockerConfigJson }}
+{{- end }}
