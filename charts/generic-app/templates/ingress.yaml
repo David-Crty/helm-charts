@@ -27,7 +27,7 @@ metadata:
 spec:
   {{- if .Values.https }}
   tls:
-    - secretName: {{ .Values.appName }}-cert
+    - secretName: {{ $fullName }}-cert
   {{- end }}
   rules:
     - host: {{ .Values.host }}
