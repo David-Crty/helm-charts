@@ -2,6 +2,19 @@ apiVersion: v1
 entries:
   generic-app:
   - apiVersion: v2
+    created: "2022-09-11T19:24:49.149784919Z"
+    description: A Helm Chart for Generic App
+    digest: 114a79fb80ff472fac94e831ed437ed6376d478cfd6b71c8950468595ba41167
+    maintainers:
+    - name: David Courtey
+    name: generic-app
+    sources:
+    - https://github.com/David-Crty/helm-chart
+    type: application
+    urls:
+    - https://github.com/David-Crty/helm-charts/releases/download/generic-app-0.0.6/generic-app-0.0.6.tgz
+    version: 0.0.6
+  - apiVersion: v2
     created: "2022-09-11T19:21:25.714238853Z"
     description: A Helm Chart for Generic App
     digest: a8dd84cbe1211de090282f3510aeb7b9a5cd6931e88748a54f24d5372e836bf3
@@ -93,4 +106,4 @@ entries:
     urls:
     - https://github.com/David-Crty/helm-charts/releases/download/plausible-0.0.1/plausible-0.0.1.tgz
     version: 0.0.1
-generated: "2022-09-11T19:21:25.714270955Z"
+generated: "2022-09-11T19:24:49.149802519Z"
