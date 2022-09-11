@@ -1,13 +1,16 @@
 appName: demo-app
 image: hello-world
+port: 80
 host: hello-world
 https: false
-dockerConfigJson: ""
-#consumer:
-#  command: echo "hello world"
-#  replicas: 1
-#cronjob:
-#  command: echo "hello world"
-#  schedule: "* * * * *"
+dockerConfigJson: "secrets"
+workers:
+  consumer:
+    command: echo "hello world"
+    replicas: 1
+cronjobs:
+  cron-1:
+    command: echo "hello world"
+    schedule: "* * * * *"
 env:
   FOO: prod
