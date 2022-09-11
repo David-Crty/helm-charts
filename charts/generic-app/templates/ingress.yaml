@@ -46,10 +46,9 @@ spec:
 apiVersion: traefik.containo.us/v1alpha1
 kind: Middleware
 metadata:
-  name: {{ $fullName }}
+  name: {{ $fullName }}-redirect
   labels:
     {{- include "generic-app.labels" . | nindent 4 }}
-
 spec:
   redirectScheme:
     scheme: https
