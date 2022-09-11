@@ -4,13 +4,13 @@ port: 80
 host: hello-world
 https: false
 dockerConfigJson: "secrets"
-workers:
-  consumer:
-    command: echo "hello world"
-    replicas: 1
-cronjobs:
-  cron-1:
-    command: echo "hello world"
-    schedule: "* * * * *"
+#workers:
+#  consumer:
+#    command: echo "hello world"
+#    replicas: 1
+#cronjobs:
+#  cron-1:
+#    command: echo "hello world"
+#    schedule: "* * * * *"
 env:
   FOO: prod
