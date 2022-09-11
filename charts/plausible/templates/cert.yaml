@@ -1,0 +1,15 @@
+{{- if .Values.ingress.certManager.enabled }}
+{{- $fullName := include "plausible-analytics.fullname" . -}}
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: {{ $fullName }}
+spec:
+  commonName: {{ .Values.ingress.host | quote }}
+  secretName: {{ $fullName }}
+  dnsNames:
+    - {{ .Values.ingress.host | quote }}
+  issuerRef:
+    name: {{ .Values.ingress.certManager.issuerRef.name }}
+    kind: {{ .Values.ingress.certManager.issuerRef.kind }}
+{{- end }}

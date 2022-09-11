@@ -1,0 +1,6 @@
+dependencies:
+- name: clickhouse
+  repository: https://liwenhe1993.github.io/charts/
+  version: 1.0.1
+digest: sha256:4b3c584fe7bcc47037689d9b5d4a04d5c27ae3e68e40ee47aef969e1c3c8ad7e
+generated: "2022-09-07T19:52:38.135351+02:00"
