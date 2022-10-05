@@ -3,7 +3,7 @@ image: hello-world
 port: 80
 host: hello-world
 https: false
-dockerConfigJson: "secrets"
+dockerConfigJson: ""
 #workers:
 #  consumer:
 #    command: echo "hello world"
