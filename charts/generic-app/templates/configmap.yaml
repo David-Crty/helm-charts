@@ -1,0 +1,10 @@
+{{ $values := .Values }}
+{{- $fullName := include "generic-app.fullname" . -}}
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: env-configmap-{{ $fullName }}
+data:
+  {{- range $key, $value := $values.env }}
+  {{ $key }}: "{{ $value }}"
+  {{- end }}

@@ -18,7 +18,6 @@ spec:
       annotations:
         rollme: {{ randAlphaNum 5 | quote }}
     spec:
-      {{- include "generic-app.imagePullSecrets" . | nindent 6 }}
       containers:
         - name: web-{{ $fullName }}
           image: {{ $values.image }}
@@ -53,7 +52,6 @@ spec:
       annotations:
         rollme: {{ randAlphaNum 5 | quote }}
     spec:
-      {{- include "generic-app.imagePullSecrets" $ | nindent 6 }}
       containers:
         - name: consumer-{{ $fullName }}-{{ $keyWorker }}
           image: {{ $values.image }}
@@ -71,46 +69,3 @@ spec:
                   {{- end }}
 {{- end }}
 {{- end }}
-{{- if $values.cronjobs }}
-{{- range $keyCronjob, $valuesCronjob := $values.cronjobs }}
----
-apiVersion: batch/v1
-kind: CronJob
-metadata:
-  name: cronjob-{{ $fullName }}-{{ $keyCronjob }}
-  labels:
-    {{- include "generic-app.labels" $ | nindent 4 }}
-spec:
-  schedule: "{{ $valuesCronjob.schedule }}"
-  jobTemplate:
-    spec:
-      template:
-        spec:
-          {{- include "generic-app.imagePullSecrets" $ | nindent 10 }}
-          containers:
-            - name: cron-{{ $fullName }}-{{ $keyCronjob }}
-              image: {{ $values.image }}
-              imagePullPolicy: Always
-              command:
-              {{- range (split " " $valuesCronjob.command) }}
-                - {{ . | quote  }}
-              {{- end }}
-              envFrom:
-                - configMapRef:
-                    name: env-configmap-{{ $fullName }}
-              {{- if $values.envEncrypted }}
-                - secretRef:
-                    name: env-secret-{{ $fullName }}
-              {{- end }}
-          restartPolicy: Never
-{{- end }}
-{{- end }}
----
-kind: ConfigMap
-apiVersion: v1
-metadata:
-  name: env-configmap-{{ $fullName }}
-data:
-  {{- range $key, $value := $values.env }}
-  {{ $key }}: "{{ $value }}"
-  {{- end }}

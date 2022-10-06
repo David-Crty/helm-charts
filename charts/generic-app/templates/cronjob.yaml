@@ -1,0 +1,38 @@
+{{- $fullName := include "generic-app.fullname" . -}}
+{{ $values := .Values }}
+{{- if $values.cronjobs }}
+{{- range $name, $cronjob := $values.cronjobs }}
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ $fullName }}-{{ $name }}
+  labels:
+    {{- include "generic-app.labels" $ | nindent 4 }}
+spec:
+  schedule: {{ $cronjob.schedule | quote }}
+  jobTemplate:
+    metadata:
+      name: {{ $fullName }}-{{ $name }}
+      labels:
+        {{- include "generic-app.selectorLabels" $ | nindent 8 }}
+    spec:
+      template:
+        spec:
+          containers:
+          - image: {{ $values.image }}
+            name: {{ $fullName }}-{{ $name }}
+            imagePullPolicy: Always
+            command:
+              {{- range (split " " $cronjob.command) }}
+              - {{ . | quote  }}
+              {{- end }}
+            envFrom:
+              - configMapRef:
+                  name: env-configmap-{{ $fullName }}
+            {{- if $values.envEncrypted }}
+              - secretRef:
+                  name: env-secret-{{ $fullName }}
+            {{- end }}
+          restartPolicy: OnFailure
+{{- end }}
+{{- end }}

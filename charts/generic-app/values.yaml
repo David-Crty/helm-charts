@@ -12,5 +12,4 @@ dockerConfigJson: ""
 #  cron-1:
 #    command: echo "hello world"
 #    schedule: "* * * * *"
-env:
-  FOO: prod
+env: {}

@@ -50,12 +50,6 @@ app.kubernetes.io/name: {{ include "generic-app.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 
-{{- define "generic-app.imagePullSecrets" -}}
-{{- if .Values.dockerConfigJson }}imagePullSecrets:
-- name: secret-regcred-{{ include "generic-app.fullname" . }}
-{{- end }}
-{{- end }}
-
 {{/*
 Create the name of the service account to use
 */}}
