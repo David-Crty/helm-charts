@@ -23,13 +23,34 @@ spec:
           image: {{ $values.image }}
           imagePullPolicy: Always
           ports:
-            - containerPort: {{ $values.port }}
+            - name: http
+              containerPort: {{ $values.port }}
           envFrom:
             - configMapRef:
                 name: env-configmap-{{ $fullName }}
           {{- if $values.envEncrypted }}
             - secretRef:
                 name: env-secret-{{ $fullName }}
+          {{- end }}
+          {{- if $values.healthCheckPath }}
+          livenessProbe:
+            httpGet:
+              path: {{ $values.healthCheckPath }}
+              port: http
+            failureThreshold: 3
+            periodSeconds: 10
+          startupProbe:
+            httpGet:
+              path: {{ $values.healthCheckPath }}
+              port: http
+            failureThreshold: 60
+            periodSeconds: 5
+          readinessProbe:
+            httpGet:
+              path: {{ $values.healthCheckPath }}
+              port: liveness-port
+            failureThreshold: 1
+            periodSeconds: 5
           {{- end }}
 {{- if $values.workers }}
 {{- range $keyWorker, $valuesWorker := $values.workers }}
