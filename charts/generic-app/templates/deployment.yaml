@@ -22,6 +22,11 @@ spec:
         {{- include "generic-app.selectorLabels" . | nindent 8 }}
       annotations:
         rollme: {{ randAlphaNum 5 | quote }}
+        {{- if $values.enablePrometheus }}
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8080"
+        prometheus.io/path: "/metrics/prometheus"
+        {{- end }}
     spec:
       containers:
         - name: web-{{ $fullName }}
