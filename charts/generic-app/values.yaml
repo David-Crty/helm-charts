@@ -5,7 +5,9 @@ host: hello-world
 https: false
 dockerConfigJson: ""
 healthCheckPath: ""
-enablePrometheus: false
+prometheus:
+  enabled: false
+  path: "/metrics"
 #workers:
 #  consumer:
 #    command: echo "hello world"

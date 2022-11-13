@@ -20,12 +20,15 @@ spec:
     metadata:
       labels:
         {{- include "generic-app.selectorLabels" . | nindent 8 }}
+        {{- if $values.prometheus.enabled }}
+        monitoring: "true"
+        {{- end }}
       annotations:
         rollme: {{ randAlphaNum 5 | quote }}
-        {{- if $values.enablePrometheus }}
+        {{- if $values.prometheus.enabled }}
         prometheus.io/scrape: "true"
         prometheus.io/port: "8080"
-        prometheus.io/path: "/metrics/prometheus"
+        prometheus.io/path: {{ $values.prometheus.path | quote }}
         {{- end }}
     spec:
       containers:
