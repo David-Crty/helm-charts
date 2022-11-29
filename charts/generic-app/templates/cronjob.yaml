@@ -10,6 +10,9 @@ metadata:
     {{- include "generic-app.labels" $ | nindent 4 }}
 spec:
   schedule: {{ $cronjob.schedule | quote }}
+  {{- if $cronjob.concurrencyPolicy }}
+  concurrencyPolicy: {{ $cronjob.concurrencyPolicy }}
+  {{- end }}
   jobTemplate:
     metadata:
       name: {{ $fullName }}-{{ $name }}
