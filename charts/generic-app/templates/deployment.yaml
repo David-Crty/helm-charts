@@ -45,6 +45,10 @@ spec:
             - secretRef:
                 name: env-secret-{{ $fullName }}
           {{- end }}
+          lifecycle:
+            preStop:
+              exec:
+                command: [ "sleep", "10" ]
           {{- if $values.healthCheckPath }}
           livenessProbe:
             httpGet:
