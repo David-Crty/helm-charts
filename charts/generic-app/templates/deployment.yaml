@@ -38,12 +38,16 @@ spec:
           ports:
             - name: http
               containerPort: {{ $values.port }}
+          {{- if or $values.env $values.envEncrypted }}
           envFrom:
+          {{- if $values.env }}
             - configMapRef:
                 name: env-configmap-{{ $fullName }}
+          {{- end }}
           {{- if $values.envEncrypted }}
             - secretRef:
                 name: env-secret-{{ $fullName }}
+          {{- end }}
           {{- end }}
           lifecycle:
             preStop:
@@ -98,12 +102,16 @@ spec:
             {{- range (split " " $valuesWorker.command) }}
             - {{ . | quote  }}
             {{- end }}
+          {{- if or $values.env $values.envEncrypted }}
           envFrom:
+          {{- if $values.env }}
             - configMapRef:
                 name: env-configmap-{{ $fullName }}
-                  {{- if $values.envEncrypted }}
+          {{- end }}
+          {{- if $values.envEncrypted }}
             - secretRef:
                 name: env-secret-{{ $fullName }}
-                  {{- end }}
+          {{- end }}
+          {{- end }}
 {{- end }}
 {{- end }}

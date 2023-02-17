@@ -29,12 +29,16 @@ spec:
               {{- range (split " " $cronjob.command) }}
               - {{ . | quote  }}
               {{- end }}
+            {{- if or $values.env $values.envEncrypted }}
             envFrom:
+            {{- if $values.env }}
               - configMapRef:
                   name: env-configmap-{{ $fullName }}
+            {{- end }}
             {{- if $values.envEncrypted }}
               - secretRef:
                   name: env-secret-{{ $fullName }}
+            {{- end }}
             {{- end }}
           restartPolicy: OnFailure
 {{- end }}

@@ -1,0 +1,14 @@
+{{- $fullName := include "generic-app.fullname" . -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $fullName }}
+  labels:
+    {{- include "generic-app.labels" . | nindent 4 }}
+spec:
+  ports:
+    - port: 80
+      targetPort: {{ .Values.port }}
+      protocol: TCP
+  selector:
+    {{- include "generic-app.selectorLabels" . | nindent 4 }}

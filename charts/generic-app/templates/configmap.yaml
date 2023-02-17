@@ -1,3 +1,4 @@
+{{- if .Values.env }}
 {{ $values := .Values }}
 {{- $fullName := include "generic-app.fullname" . -}}
 kind: ConfigMap
@@ -8,3 +9,4 @@ data:
   {{- range $key, $value := $values.env }}
   {{ $key }}: "{{ $value }}"
   {{- end }}
+{{- end }}

@@ -1,19 +1,18 @@
 appName: demo-app
 image: hello-world
 port: 80
-host: hello-world
-https: false
-dockerConfigJson: ""
+host: hello-world.com
 healthCheckPath: ""
 prometheus:
   enabled: false
   path: "/metrics"
-#workers:
+workers: {}
 #  consumer:
 #    command: echo "hello world"
 #    replicas: 1
-#cronjobs:
+cronjobs: {}
 #  cron-1:
 #    command: echo "hello world"
 #    schedule: "* * * * *"
 env: {}
+envEncrypted: {}
