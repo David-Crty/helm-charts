@@ -24,7 +24,8 @@ spec:
         monitoring: "true"
         {{- end }}
       annotations:
-        rollme: {{ randAlphaNum 5 | quote }}
+        checksum/env: {{ $values.env | toString | sha256sum }}
+        checksum/envEncrypted: {{ $values.envEncrypted | toString | sha256sum }}
         {{- if $values.prometheus.enabled }}
         prometheus.io/scrape: "true"
         prometheus.io/port: "8080"
@@ -92,7 +93,8 @@ spec:
       labels:
         app.kubernetes.io/name: consumer-{{ $fullName }}-{{ $keyWorker }}
       annotations:
-        rollme: {{ randAlphaNum 5 | quote }}
+        checksum/env: {{ $values.env | toString | sha256sum }}
+        checksum/envEncrypted: {{ $values.envEncrypted | toString | sha256sum }}
     spec:
       containers:
         - name: consumer-{{ $fullName }}-{{ $keyWorker }}
