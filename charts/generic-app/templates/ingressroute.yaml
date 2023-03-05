@@ -9,7 +9,7 @@ spec:
   entryPoints:
     - websecure
   tls:
-    certResolver: letsencrypt
+    secretName: {{ $fullName }}-cert
   routes:
     - match: Host(`{{ .Values.host }}`)
       kind: Rule

@@ -1,0 +1,17 @@
+{{- if .Values.https }}
+{{- $fullName := include "generic-app.fullname" . -}}
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: {{ $fullName }}
+  labels:
+    {{- include "generic-app.labels" . | nindent 4 }}
+spec:
+  commonName: {{ .Values.host }}
+  secretName: {{ $fullName }}-cert
+  dnsNames:
+    - {{ .Values.host }}
+  issuerRef:
+    name: letsencrypt-prod
+    kind: ClusterIssuer
+{{- end }}
