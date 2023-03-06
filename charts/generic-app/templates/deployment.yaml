@@ -7,6 +7,7 @@ metadata:
   labels:
     {{- include "generic-app.labels" . | nindent 4 }}
 spec:
+  revisionHistoryLimit: 3
   selector:
     matchLabels:
       {{- include "generic-app.selectorLabels" . | nindent 6 }}
@@ -84,6 +85,7 @@ metadata:
   labels:
     {{- include "generic-app.labels" $ | nindent 4 }}
 spec:
+  revisionHistoryLimit: 3
   selector:
     matchLabels:
       app.kubernetes.io/name: consumer-{{ $fullName }}-{{ $keyWorker }}
