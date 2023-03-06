@@ -6,6 +6,8 @@ metadata:
   name: web-{{ $fullName }}
   labels:
     {{- include "generic-app.labels" . | nindent 4 }}
+  annotations:
+    link.argocd.argoproj.io/external-link: https://{{ .Values.host | quote }}
 spec:
   revisionHistoryLimit: 3
   selector:

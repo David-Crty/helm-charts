@@ -2,7 +2,7 @@ apiVersion: v2
 name: generic-app
 description: A Helm Chart for Generic App
 type: application
-version: 0.1.3
+version: 0.1.4
 sources:
   - https://github.com/David-Crty/helm-chart
 maintainers:
