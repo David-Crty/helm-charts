@@ -17,20 +17,37 @@ spec:
     name: letsencrypt-prod
     kind: ClusterIssuer
 ---
+{{- $last := sub (len .Values.redirectHosts) 1 }}
 apiVersion: traefik.containo.us/v1alpha1
 kind: IngressRoute
 metadata:
-  name: redirect-to-main
+  name: redirect-to-main-https
   labels:
     {{- include "generic-app.labels" . | nindent 4 }}
 spec:
   entryPoints:
     - websecure
-    - web
   tls:
     secretName: redirect-to-main-cert
   routes:
-    {{- $last := sub (len .Values.redirectHosts) 1 }}
+    - match: {{ range $index, $host :=  .Values.redirectHosts }}Host(`{{ $host }}`){{ if ne $index $last }} || {{ end }}{{ end }}
+      kind: Rule
+      services:
+        - kind: TraefikService
+          name: noop@internal
+      middlewares:
+        - name: redirect-to-main
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: redirect-to-main-http
+  labels:
+    {{- include "generic-app.labels" . | nindent 4 }}
+spec:
+  entryPoints:
+    - web
+  routes:
     - match: {{ range $index, $host :=  .Values.redirectHosts }}Host(`{{ $host }}`){{ if ne $index $last }} || {{ end }}{{ end }}
       kind: Rule
       services:
