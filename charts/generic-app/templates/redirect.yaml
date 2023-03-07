@@ -1,0 +1,54 @@
+{{- if .Values.redirectHosts }}
+# Source: tfs/charts/shop/templates/cert.yaml
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: redirect-to-main-cert
+  labels:
+    {{- include "generic-app.labels" . | nindent 4 }}
+spec:
+  commonName: {{ .Values.redirectHosts | first }}
+  secretName: redirect-to-main-cert
+  dnsNames:
+    {{- range .Values.redirectHosts }}
+    - {{ . }}
+    {{- end }}
+  issuerRef:
+    name: letsencrypt-prod
+    kind: ClusterIssuer
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: redirect-to-main
+  labels:
+    {{- include "generic-app.labels" . | nindent 4 }}
+spec:
+  entryPoints:
+    - websecure
+    - web
+  tls:
+    secretName: redirect-to-main-cert
+  routes:
+    {{- $last := sub (len .Values.redirectHosts) 1 }}
+    - match: {{ range $index, $host :=  .Values.redirectHosts }}Host(`{{ $host }}`){{ if ne $index $last }} || {{ end }}{{ end }}
+      kind: Rule
+      services:
+        - kind: TraefikService
+          name: noop@internal
+      middlewares:
+        - name: redirect-to-main
+---
+# Redirect with domain replacement
+apiVersion: traefik.containo.us/v1alpha1
+kind: Middleware
+metadata:
+  name: redirect-to-main
+  labels:
+    {{- include "generic-app.labels" . | nindent 4 }}
+spec:
+  redirectRegex:
+    regex: "^https?://([^/]+)(.*)$"
+    replacement: "https://{{ .Values.host }}$2"
+    permanent: true
+{{- end }}

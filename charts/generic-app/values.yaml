@@ -16,3 +16,4 @@ cronjobs: {}
 #    schedule: "* * * * *"
 env: {}
 envEncrypted: {}
+redirectHosts: []
