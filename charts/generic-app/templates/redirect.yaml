@@ -30,8 +30,9 @@ spec:
   tls:
     secretName: redirect-to-main-cert
   routes:
-    - match: {{ range $index, $host :=  .Values.redirectHosts }}Host(`{{ $host }}`){{ if ne $index $last }} || {{ end }}{{ end }}
-      kind: Rule
+    - kind: Rule
+      priority: 1
+      match: {{ range $index, $host :=  .Values.redirectHosts }}Host(`{{ $host }}`){{ if ne $index $last }} || {{ end }}{{ end }}
       services:
         - kind: TraefikService
           name: noop@internal
@@ -48,8 +49,9 @@ spec:
   entryPoints:
     - web
   routes:
-    - match: {{ range $index, $host :=  .Values.redirectHosts }}Host(`{{ $host }}`){{ if ne $index $last }} || {{ end }}{{ end }}
-      kind: Rule
+    - kind: Rule
+      match: {{ range $index, $host :=  .Values.redirectHosts }}Host(`{{ $host }}`){{ if ne $index $last }} || {{ end }}{{ end }}
+      priority: 1
       services:
         - kind: TraefikService
           name: noop@internal
