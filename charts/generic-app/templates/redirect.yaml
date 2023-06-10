@@ -1,14 +1,14 @@
 {{- if .Values.redirectHosts }}
-# Source: tfs/charts/shop/templates/cert.yaml
+{{- $fullName := include "generic-app.fullname" . -}}
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
-  name: redirect-to-main-cert
+  name: {{ $fullName }}-redirect-to-main-cert
   labels:
     {{- include "generic-app.labels" . | nindent 4 }}
 spec:
   commonName: {{ .Values.redirectHosts | first }}
-  secretName: redirect-to-main-cert
+  secretName: {{ $fullName }}-redirect-to-main-cert
   dnsNames:
     {{- range .Values.redirectHosts }}
     - {{ . }}
@@ -21,14 +21,14 @@ spec:
 apiVersion: traefik.containo.us/v1alpha1
 kind: IngressRoute
 metadata:
-  name: redirect-to-main-https
+  name: {{ $fullName }}-redirect-to-main-https
   labels:
     {{- include "generic-app.labels" . | nindent 4 }}
 spec:
   entryPoints:
     - websecure
   tls:
-    secretName: redirect-to-main-cert
+    secretName: {{ $fullName }}-redirect-to-main-cert
   routes:
     - kind: Rule
       priority: 1
@@ -37,12 +37,12 @@ spec:
         - kind: TraefikService
           name: noop@internal
       middlewares:
-        - name: redirect-to-main
+        - name: {{ $fullName }}-redirect-to-main
 ---
 apiVersion: traefik.containo.us/v1alpha1
 kind: IngressRoute
 metadata:
-  name: redirect-to-main-http
+  name: {{ $fullName }}-redirect-to-main-http
   labels:
     {{- include "generic-app.labels" . | nindent 4 }}
 spec:
@@ -56,13 +56,13 @@ spec:
         - kind: TraefikService
           name: noop@internal
       middlewares:
-        - name: redirect-to-main
+        - name: {{ $fullName }}-redirect-to-main
 ---
 # Redirect with domain replacement
 apiVersion: traefik.containo.us/v1alpha1
 kind: Middleware
 metadata:
-  name: redirect-to-main
+  name: {{ $fullName }}-redirect-to-main
   labels:
     {{- include "generic-app.labels" . | nindent 4 }}
 spec:
