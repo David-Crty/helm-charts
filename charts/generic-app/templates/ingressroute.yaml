@@ -1,3 +1,4 @@
+{{- if .Values.host }}
 {{- $fullName := include "generic-app.fullname" . -}}
 apiVersion: traefik.containo.us/v1alpha1
 kind: IngressRoute
@@ -46,3 +47,4 @@ spec:
   redirectScheme:
     scheme: https
     permanent: true
+{{- end }}

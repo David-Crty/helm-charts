@@ -2,6 +2,7 @@ appName: demo-app
 image: hello-world
 port: 80
 host: hello-world.com
+https: false
 healthCheckPath: ""
 prometheus:
   enabled: false
