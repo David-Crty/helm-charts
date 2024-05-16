@@ -1,0 +1,18 @@
+# pvc from values.yaml
+{{- range $volumeName, $volume := .Values.volumes }}
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: {{ include "generic-app.fullname" . }}-{{ $volumeName }}
+  labels:
+    {{- include "generic-app.labels" $ | nindent 4 }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ $volume.size }}
+  storageClassName: {{ $volume.storageClass }}
+  volumeMode: Filesystem
+---
+{{- end }}

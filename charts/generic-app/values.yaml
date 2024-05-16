@@ -1,5 +1,5 @@
-appName: demo-app
 image: hello-world
+tag: latest
 port: 80
 host: hello-world.com
 https: false
@@ -11,10 +11,16 @@ workers: {}
 #  consumer:
 #    command: echo "hello world"
 #    replicas: 1
-cronjobs: {}
+cronJobs: {}
 #  cron-1:
 #    command: echo "hello world"
 #    schedule: "* * * * *"
 env: {}
 envEncrypted: {}
 redirectHosts: []
+deploymentStrategy: RollingUpdate
+volumes: {}
+#  data:
+#    size: 1Gi
+#    storageClass: ""
+#    mountPath: /data

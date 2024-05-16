@@ -1,0 +1,13 @@
+suite: test deployment
+templates:
+  - deployment.yaml
+tests:
+  - it: should have volume mounts for data
+    set:
+      volumes:
+        data:
+          size: 1Gi
+          storageClass: ""
+          mountPath: /data
+    asserts:
+      - matchSnapshot: {}

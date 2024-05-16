@@ -1,0 +1,54 @@
+should work:
+  1: |
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      annotations:
+        link.argocd.argoproj.io/external-link: https://hello-world.com
+      labels:
+        app.kubernetes.io/instance: RELEASE-NAME
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: generic-app
+        helm.sh/chart: generic-app-0.1.10
+      name: web-RELEASE-NAME-generic-app
+    spec:
+      replicas: 1
+      revisionHistoryLimit: 3
+      selector:
+        matchLabels:
+          app.kubernetes.io/instance: RELEASE-NAME
+          app.kubernetes.io/name: generic-app
+      strategy:
+        rollingUpdate:
+          maxSurge: 1
+          maxUnavailable: 0
+        type: RollingUpdate
+      template:
+        metadata:
+          annotations:
+            checksum/env: 52133ddfcd583280388a8bbfb67a417b6b660f75bc63ec1b01beec811d4498ef
+            checksum/envEncrypted: 52133ddfcd583280388a8bbfb67a417b6b660f75bc63ec1b01beec811d4498ef
+          labels:
+            app.kubernetes.io/instance: RELEASE-NAME
+            app.kubernetes.io/name: generic-app
+        spec:
+          containers:
+            - image: map[tag:latest]
+              imagePullPolicy: Always
+              lifecycle:
+                preStop:
+                  exec:
+                    command:
+                      - sleep
+                      - "10"
+              name: web-RELEASE-NAME-generic-app
+              ports:
+                - containerPort: 80
+                  name: http
+              volumeMounts:
+                - mountPath: /data
+                  name: data
+          volumes:
+            - name: data
+              persistentVolumeClaim:
+                claimName: RELEASE-NAME-generic-app-data

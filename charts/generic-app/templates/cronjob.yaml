@@ -1,7 +1,7 @@
 {{- $fullName := include "generic-app.fullname" . -}}
 {{ $values := .Values }}
-{{- if $values.cronjobs }}
-{{- range $name, $cronjob := $values.cronjobs }}
+{{- if $values.cronJobs }}
+{{- range $name, $cronjob := $values.cronJobs }}
 apiVersion: batch/v1
 kind: CronJob
 metadata:
@@ -33,11 +33,11 @@ spec:
             envFrom:
             {{- if $values.env }}
               - configMapRef:
-                  name: env-configmap-{{ $fullName }}
+                  name: {{ $fullName }}
             {{- end }}
             {{- if $values.envEncrypted }}
               - secretRef:
-                  name: env-secret-{{ $fullName }}
+                  name: {{ $fullName }}
             {{- end }}
             {{- end }}
           restartPolicy: OnFailure

@@ -3,7 +3,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: web-{{ $fullName }}
+  name: {{ $fullName }}
   labels:
     {{- include "generic-app.labels" . | nindent 4 }}
   annotations:
@@ -18,7 +18,7 @@ spec:
     rollingUpdate:
       maxSurge: 1
       maxUnavailable: 0
-    type: RollingUpdate
+    type: {{ .Values.deploymentStrategy }}
   template:
     metadata:
       labels:
@@ -36,8 +36,8 @@ spec:
         {{- end }}
     spec:
       containers:
-        - name: web-{{ $fullName }}
-          image: {{ $values.image }}
+        - name: {{ $fullName }}
+          image: {{ $values.image }}:{{ $values.tag }}
           imagePullPolicy: Always
           ports:
             - name: http
@@ -46,11 +46,11 @@ spec:
           envFrom:
           {{- if $values.env }}
             - configMapRef:
-                name: env-configmap-{{ $fullName }}
+                name: {{ $fullName }}
           {{- end }}
           {{- if $values.envEncrypted }}
             - secretRef:
-                name: env-secret-{{ $fullName }}
+                name: {{ $fullName }}
           {{- end }}
           {{- end }}
           lifecycle:
@@ -70,38 +70,47 @@ spec:
               port: http
             failureThreshold: 60
             periodSeconds: 5
-          readinessProbe:
-            httpGet:
-              path: {{ $values.healthCheckPath }}
-              port: http
-            failureThreshold: 1
-            periodSeconds: 5
           {{- end }}
+          {{- if $values.volumes }}
+          volumeMounts:
+            {{- range $volumeName, $volume := $values.volumes }}
+            - name: {{ $volumeName }}
+              mountPath: {{ $volume.mountPath }}
+            {{- end }}
+          {{- end }}
+      {{- if $values.volumes }}
+      volumes:
+        {{- range $volumeName, $volume := $values.volumes }}
+        - name: {{ $volumeName }}
+          persistentVolumeClaim:
+            claimName: {{ $fullName }}-{{ $volumeName }}
+        {{- end }}
+      {{- end }}
+---
 {{- if $values.workers }}
 {{- range $keyWorker, $valuesWorker := $values.workers }}
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: consumer-{{ $fullName }}-{{ $keyWorker }}
+  name: {{ $fullName }}-{{ $keyWorker }}
   labels:
     {{- include "generic-app.labels" $ | nindent 4 }}
 spec:
   revisionHistoryLimit: 3
   selector:
     matchLabels:
-      app.kubernetes.io/name: consumer-{{ $fullName }}-{{ $keyWorker }}
+      app.kubernetes.io/name: {{ $fullName }}-{{ $keyWorker }}
   replicas: {{ $valuesWorker.replicas }}
   template:
     metadata:
       labels:
-        app.kubernetes.io/name: consumer-{{ $fullName }}-{{ $keyWorker }}
+        app.kubernetes.io/name: {{ $fullName }}-{{ $keyWorker }}
       annotations:
         checksum/env: {{ $values.env | toString | sha256sum }}
         checksum/envEncrypted: {{ $values.envEncrypted | toString | sha256sum }}
     spec:
       containers:
-        - name: consumer-{{ $fullName }}-{{ $keyWorker }}
+        - name: {{ $fullName }}-{{ $keyWorker }}
           image: {{ $values.image }}
           imagePullPolicy: Always
           command:
@@ -112,12 +121,13 @@ spec:
           envFrom:
           {{- if $values.env }}
             - configMapRef:
-                name: env-configmap-{{ $fullName }}
+                name: {{ $fullName }}
           {{- end }}
           {{- if $values.envEncrypted }}
             - secretRef:
-                name: env-secret-{{ $fullName }}
+                name: {{ $fullName }}
           {{- end }}
           {{- end }}
 {{- end }}
+---
 {{- end }}
