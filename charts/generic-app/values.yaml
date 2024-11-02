@@ -1,3 +1,6 @@
+global:
+  storageClass: "scw-bssd"
+
 image: hello-world
 tag: latest
 port: 80

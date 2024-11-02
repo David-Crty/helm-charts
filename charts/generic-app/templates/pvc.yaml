@@ -90,7 +90,7 @@ spec:
     requests:
       storage: 1200Gi # ignored, required
   {{- else }}
-  storageClassName: {{ $volume.storageClass | default "gp2" | quote }}
+  storageClassName: {{ $volume.storageClass | default .Values.global.storageClass | quote }}
   resources:
     requests:
       storage: {{ $volume.size }}
