@@ -1,26 +1,57 @@
 image: hello-world
 tag: latest
 port: 80
-host: hello-world.com
-https: false
+replicas: 1
+resources:
+  preset: "micro"
+  enableCpuLimit: false
+ingress:
+  enabled: true
+  annotations: {}
+  keycloakProtection: false
+  https: true
+  hosts:
+    - hello-world.com
+  type: Ingress # or IngressRoute
 healthCheckPath: ""
 prometheus:
   enabled: false
   path: "/metrics"
+serviceAccount:
+  create: false
+  name: ""
+  authorizedRules: []
+  annotations: {}
+  authorizedRulesExtraNamespaces: []
+runAsUser: ""
+webdevopsPhpProductionEnvs: false
+trustedProxiesEnv: false
+env: {}
+#  ENV_VAR: value
+envEncrypted: {}
+#  ENV_VAR: encrypted_value using sealed-secrets
 workers: {}
 #  consumer:
-#    command: echo "hello world"
+#    command:
+#     - echo
+#     - "hello world"
 #    replicas: 1
 cronJobs: {}
 #  cron-1:
-#    command: echo "hello world"
+#    command:
+#     - echo
+#     - "hello world"
 #    schedule: "* * * * *"
-env: {}
-envEncrypted: {}
-redirectHosts: []
-deploymentStrategy: RollingUpdate
 volumes: {}
 #  data:
 #    size: 1Gi
-#    storageClass: ""
+#    storageClass: "" # default is "gp2"
+#    s3Driver:
+#      bucket: "awstudio-cms-public-files"
+#      region: "eu-west-3"
+#      prefix: "${APP_NAME}"
+#      hostCache: false
 #    mountPath: /data
+initContainers: {}
+pdb:
+  enabled: false

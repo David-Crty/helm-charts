@@ -17,7 +17,7 @@ spec:
     metadata:
       name: {{ $fullName }}-{{ $name }}
       labels:
-        {{- include "generic-app.selectorLabels" $ | nindent 8 }}
+        {{- include "generic-app.cronjobSelectorLabels" $ | nindent 8 }}
     spec:
       template:
         spec:
@@ -26,9 +26,15 @@ spec:
             name: {{ $fullName }}-{{ $name }}
             imagePullPolicy: Always
             command:
-              {{- range (split " " $cronjob.command) }}
-              - {{ . | quote  }}
+              {{- range $cronjob.command }}
+              - {{ . | quote }}
               {{- end }}
+            {{- if $cronjob.args }}
+            args:
+              {{- range $cronjob.args }}
+              - {{ . | quote }}
+              {{- end }}
+            {{- end }}
             {{- if or $values.env $values.envEncrypted }}
             envFrom:
             {{- if $values.env }}

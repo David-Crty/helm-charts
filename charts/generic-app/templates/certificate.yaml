@@ -1,4 +1,4 @@
-{{- if .Values.https }}
+{{- if and .Values.ingress.enabled (eq .Values.ingress.type "IngressRoute") }}
 {{- $fullName := include "generic-app.fullname" . -}}
 apiVersion: cert-manager.io/v1
 kind: Certificate
@@ -7,10 +7,12 @@ metadata:
   labels:
     {{- include "generic-app.labels" . | nindent 4 }}
 spec:
-  commonName: {{ .Values.host }}
+  commonName: {{ $fullName }}
   secretName: {{ $fullName }}-cert
   dnsNames:
-    - {{ .Values.host }}
+    {{- range .Values.ingress.hosts }}
+    - {{ . }}
+    {{- end }}
   issuerRef:
     name: letsencrypt-prod
     kind: ClusterIssuer

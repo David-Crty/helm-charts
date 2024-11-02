@@ -35,7 +35,8 @@ Common labels
 */}}
 {{- define "generic-app.labels" -}}
 helm.sh/chart: {{ include "generic-app.chart" . }}
-{{ include "generic-app.selectorLabels" . }}
+app.kubernetes.io/name: {{ include "generic-app.name" . }}
+app.kubernetes.io/instance: {{ .Release.Name }}
 {{- if .Chart.AppVersion }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 {{- end }}
@@ -45,9 +46,21 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{/*
 Selector labels
 */}}
-{{- define "generic-app.selectorLabels" -}}
+{{- define "generic-app.baseSelectorLabels" -}}
 app.kubernetes.io/name: {{ include "generic-app.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end }}
+{{- define "generic-app.webSelectorLabels" -}}
+{{ include "generic-app.baseSelectorLabels" . }}
+app.kubernetes.io/component: web
+{{- end }}
+{{- define "generic-app.workerSelectorLabels" -}}
+{{ include "generic-app.baseSelectorLabels" . }}
+app.kubernetes.io/component: worker
+{{- end }}
+{{- define "generic-app.cronjobSelectorLabels" -}}
+{{ include "generic-app.baseSelectorLabels" . }}
+app.kubernetes.io/component: cronjob
 {{- end }}
 
 {{/*
@@ -60,3 +73,62 @@ Create the name of the service account to use
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}
 {{- end }}
+
+{{- define "generic-app.image" }}
+{{- $tag := "" }}
+{{- if .Values.tag }}
+{{- $tag = .Values.tag }}
+{{- else }}
+{{- $tag = "latest" }}
+{{- end }}
+{{- printf "%s:%s" .Values.image $tag }}
+{{- end }}
+
+{{- define "toSlug" -}}
+{{- $value := . | lower -}}
+{{- $value = regexReplaceAll "\\W+" $value "-" }}
+{{- print $value -}}
+{{- end -}}
+
+{{- define "common.resources.preset" -}}
+{{/* The limits are the requests increased by 50% (except ephemeral-storage and xlarge/2xlarge sizes)*/}}
+{{- $presets := dict
+  "nano" (dict
+      "requests" (dict "cpu" "50m" "memory" "128Mi" "ephemeral-storage" "1Gi")
+      "limits" (dict "cpu" "200m" "memory" "256Mi" "ephemeral-storage" "2Gi")
+   )
+  "micro" (dict
+      "requests" (dict "cpu" "50m" "memory" "128Mi" "ephemeral-storage" "1Gi")
+      "limits" (dict "cpu" "500m" "memory" "512Mi" "ephemeral-storage" "2Gi")
+   )
+  "small" (dict
+      "requests" (dict "cpu" "50m" "memory" "200Mi" "ephemeral-storage" "1Gi")
+      "limits" (dict "cpu" "750m" "memory" "1024Mi" "ephemeral-storage" "2Gi")
+   )
+  "medium" (dict
+      "requests" (dict "cpu" "100m" "memory" "256Mi" "ephemeral-storage" "1Gi")
+      "limits" (dict "cpu" "750m" "memory" "1536Mi" "ephemeral-storage" "2Gi")
+   )
+  "large" (dict
+      "requests" (dict "cpu" "200m" "memory" "512Mi" "ephemeral-storage" "1Gi")
+      "limits" (dict "cpu" "1.5" "memory" "3072Mi" "ephemeral-storage" "2Gi")
+   )
+  "xlarge" (dict
+      "requests" (dict "cpu" "500m" "memory" "1024Mi" "ephemeral-storage" "1Gi")
+      "limits" (dict "cpu" "3.0" "memory" "6144Mi" "ephemeral-storage" "2Gi")
+   )
+  "2xlarge" (dict
+      "requests" (dict "cpu" "1.0" "memory" "2048Mi" "ephemeral-storage" "1Gi")
+      "limits" (dict "cpu" "6.0" "memory" "12288Mi" "ephemeral-storage" "2Gi")
+   )
+ }}
+{{- if hasKey $presets .Values.resources.preset -}}
+  {{- $preset := index $presets .Values.resources.preset -}}
+  {{- if not .Values.resources.enableCpuLimit -}}
+    {{- $_ := unset $preset.limits "cpu" -}}
+  {{- end -}}
+  {{- $preset | toYaml -}}
+{{- else -}}
+  {{- printf "ERROR: Preset key '%s' invalid. Allowed values are %s" .Values.resources.preset (join "," (keys $presets)) | fail -}}
+{{- end -}}
+{{- end -}}

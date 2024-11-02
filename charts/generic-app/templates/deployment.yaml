@@ -1,4 +1,3 @@
-{{ $values := .Values }}
 {{- $fullName := include "generic-app.fullname" . -}}
 apiVersion: apps/v1
 kind: Deployment
@@ -12,43 +11,107 @@ spec:
   revisionHistoryLimit: 3
   selector:
     matchLabels:
-      {{- include "generic-app.selectorLabels" . | nindent 6 }}
-  replicas: 1
+      {{- include "generic-app.webSelectorLabels" . | nindent 6 }}
+  replicas: {{ .Values.replicas }}
   strategy:
     rollingUpdate:
       maxSurge: 1
       maxUnavailable: 0
-    type: {{ .Values.deploymentStrategy }}
+    type: RollingUpdate
   template:
     metadata:
       labels:
-        {{- include "generic-app.selectorLabels" . | nindent 8 }}
-        {{- if $values.prometheus.enabled }}
+        {{- include "generic-app.webSelectorLabels" . | nindent 8 }}
+        {{- if .Values.prometheus.enabled }}
         monitoring: "true"
         {{- end }}
       annotations:
-        checksum/env: {{ $values.env | toString | sha256sum }}
-        checksum/envEncrypted: {{ $values.envEncrypted | toString | sha256sum }}
-        {{- if $values.prometheus.enabled }}
+        checksum/env: {{ .Values.env | toString | sha256sum }}
+        checksum/envEncrypted: {{ .Values.envEncrypted | toString | sha256sum }}
+        {{- if .Values.prometheus.enabled }}
         prometheus.io/scrape: "true"
         prometheus.io/port: "8080"
-        prometheus.io/path: {{ $values.prometheus.path | quote }}
+        prometheus.io/path: {{ .Values.prometheus.path | quote }}
         {{- end }}
     spec:
+      serviceAccountName: {{ include "generic-app.serviceAccountName" . }}
+      {{- if .Values.initContainers }}
+      initContainers:
+        {{- range $initContainer := .Values.initContainers }}
+        - name: {{ $initContainer.name | include "toSlug" }}-{{ $fullName }}
+          image: {{ if $initContainer.image }}{{ include "generic-app.image" $ | quote }}{{ else }}{{ include "generic-app.image" $ | quote }}{{ end }}
+          imagePullPolicy: Always
+          {{- if $.Values.runAsUser }}
+          securityContext:
+            runAsUser: {{ $.Values.runAsUser }}
+          {{- end }}
+          command:
+            {{- range $initContainer.command }}
+            - {{ . | quote }}
+            {{- end }}
+          {{- if $initContainer.args }}
+          args:
+            {{- range $initContainer.args }}
+            - {{ . | quote }}
+            {{- end }}
+          {{- end }}
+          {{- if or $.Values.env $.Values.envEncrypted }}
+          envFrom:
+            {{- if $.Values.env }}
+            - configMapRef:
+                name: {{ $fullName }}
+            {{- end }}
+            {{- if $.Values.envEncrypted }}
+            - secretRef:
+                name: {{ $fullName }}
+            {{- end }}
+          {{- end }}
+        {{- end }}
+      {{- end }}
       containers:
         - name: {{ $fullName }}
-          image: {{ $values.image }}:{{ $values.tag }}
+          image: {{ include "generic-app.image" $ | quote }}
           imagePullPolicy: Always
+          resources: {{- include "common.resources.preset" $ | nindent 12 }}
+          {{- if .Values.runAsUser }}
+          securityContext:
+              runAsUser: {{ .Values.runAsUser }}
+          {{- end }}
           ports:
             - name: http
-              containerPort: {{ $values.port }}
-          {{- if or $values.env $values.envEncrypted }}
+              containerPort: {{ .Values.port }}
+          {{- if or .Values.webdevopsPhpProductionEnvs .Values.trustedProxiesEnv }}
+          env:
+              {{- if .Values.webdevopsPhpProductionEnvs }}
+              - name: php.opcache.fast_shutdown
+                value: "1"
+              - name: php.opcache.interned_strings_buffer
+                value: "64"
+              - name: php.opcache.max_accelerated_files
+                value: "50000"
+              - name: php.opcache.memory_consumption
+                value: "512"
+              - name: php.opcache.revalidate_freq
+                value: "0"
+              - name: php.opcache.validate_timestamps
+                value: "0"
+              - name: php.realpath_cache_size
+                value: "4096K"
+              - name: php.realpath_cache_ttl
+                value: "600"
+              {{- end }}
+              {{- if .Values.trustedProxiesEnv }}
+              - name: TRUSTED_PROXIES
+                value: "10.0.0.0/16"
+              {{- end }}
+          {{- end }}
+          {{- if or .Values.env .Values.envEncrypted }}
           envFrom:
-          {{- if $values.env }}
+          {{- if .Values.env }}
             - configMapRef:
                 name: {{ $fullName }}
           {{- end }}
-          {{- if $values.envEncrypted }}
+          {{- if .Values.envEncrypted }}
             - secretRef:
                 name: {{ $fullName }}
           {{- end }}
@@ -57,38 +120,52 @@ spec:
             preStop:
               exec:
                 command: [ "sleep", "10" ]
-          {{- if $values.healthCheckPath }}
+          {{- if .Values.healthCheckPath }}
           livenessProbe:
             httpGet:
-              path: {{ $values.healthCheckPath }}
+              path: {{ .Values.healthCheckPath }}
               port: http
             failureThreshold: 3
             periodSeconds: 10
+            timeoutSeconds: 3
           startupProbe:
             httpGet:
-              path: {{ $values.healthCheckPath }}
+              path: {{ .Values.healthCheckPath }}
               port: http
-            failureThreshold: 60
+            failureThreshold: 20
             periodSeconds: 5
+            timeoutSeconds: 3
+            initialDelaySeconds: 3
           {{- end }}
-          {{- if $values.volumes }}
+          {{- if .Values.volumes }}
           volumeMounts:
-            {{- range $volumeName, $volume := $values.volumes }}
+            {{- range $volumeName, $volume := .Values.volumes }}
             - name: {{ $volumeName }}
               mountPath: {{ $volume.mountPath }}
             {{- end }}
           {{- end }}
-      {{- if $values.volumes }}
+      {{- if .Values.volumes }}
       volumes:
-        {{- range $volumeName, $volume := $values.volumes }}
+        {{- range $volumeName, $volume := .Values.volumes }}
         - name: {{ $volumeName }}
+          {{- if $volume.configMap }}
+          configMap:
+            {{- with $volume.configMap }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          {{- else }}
           persistentVolumeClaim:
             claimName: {{ $fullName }}-{{ $volumeName }}
+          {{- end }}
         {{- end }}
       {{- end }}
+      {{- if .Values.runAsUser }}
+      securityContext:
+        fsGroup: {{ .Values.runAsUser }}
+      {{- end }}
 ---
-{{- if $values.workers }}
-{{- range $keyWorker, $valuesWorker := $values.workers }}
+{{- if .Values.workers }}
+{{- range $keyWorker, $valuesWorker := .Values.workers }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -99,31 +176,47 @@ spec:
   revisionHistoryLimit: 3
   selector:
     matchLabels:
-      app.kubernetes.io/name: {{ $fullName }}-{{ $keyWorker }}
+      app.kubernetes.io/name-worker: {{ $fullName }}-{{ $keyWorker }}
+      {{- include "generic-app.workerSelectorLabels" $ | nindent 6 }}
   replicas: {{ $valuesWorker.replicas }}
   template:
     metadata:
       labels:
-        app.kubernetes.io/name: {{ $fullName }}-{{ $keyWorker }}
+        app.kubernetes.io/name-worker: {{ $fullName }}-{{ $keyWorker }}
+        {{- include "generic-app.workerSelectorLabels" $ | nindent 8 }}
       annotations:
-        checksum/env: {{ $values.env | toString | sha256sum }}
-        checksum/envEncrypted: {{ $values.envEncrypted | toString | sha256sum }}
+        checksum/env: {{ $.Values.env | toString | sha256sum }}
+        checksum/envEncrypted: {{ $.Values.envEncrypted | toString | sha256sum }}
     spec:
       containers:
         - name: {{ $fullName }}-{{ $keyWorker }}
-          image: {{ $values.image }}
+          image: {{ if $valuesWorker.image }}{{ include "generic-app.image" $ | quote }}{{ else }}{{ include "generic-app.image" $ | quote }}{{ end }}
           imagePullPolicy: Always
+          resources: {{- include "common.resources.preset" $ | nindent 12 }}
           command:
-            {{- range (split " " $valuesWorker.command) }}
-            - {{ . | quote  }}
+            {{- range $valuesWorker.command }}
+            - {{ . | quote }}
             {{- end }}
-          {{- if or $values.env $values.envEncrypted }}
+          {{- if $valuesWorker.args }}
+          args:
+            {{- range $valuesWorker.args }}
+            - {{ . | quote }}
+            {{- end }}
+          {{- end }}
+          {{- if or $.Values.env $.Values.envEncrypted }}
+          {{- if $valuesWorker.env }}
+          env:
+          {{- range $key, $value := $valuesWorker.env }}
+            - name: {{ $key }}
+              value: {{ $value | quote }}
+          {{- end }}
+          {{- end }}
           envFrom:
-          {{- if $values.env }}
+          {{- if $.Values.env }}
             - configMapRef:
                 name: {{ $fullName }}
           {{- end }}
-          {{- if $values.envEncrypted }}
+          {{- if $.Values.envEncrypted }}
             - secretRef:
                 name: {{ $fullName }}
           {{- end }}

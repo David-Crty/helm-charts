@@ -1,4 +1,4 @@
-{{- if .Values.host }}
+{{- if and .Values.ingress.enabled (eq .Values.ingress.type "IngressRoute") }}
 {{- $fullName := include "generic-app.fullname" . -}}
 apiVersion: traefik.containo.us/v1alpha1
 kind: IngressRoute
@@ -12,39 +12,12 @@ spec:
   tls:
     secretName: {{ $fullName }}-cert
   routes:
-    - match: Host(`{{ .Values.host }}`)
-      kind: Rule
-      services:
-        - name: {{ $fullName }}
-          port: 80
----
-apiVersion: traefik.containo.us/v1alpha1
-kind: IngressRoute
-metadata:
-  name: redirect-to-https-redirect-{{ $fullName }}
-  labels:
-    {{- include "generic-app.labels" . | nindent 4 }}
-spec:
-  entryPoints:
-    - web
-  routes:
     - kind: Rule
       match: Host(`{{ .Values.host }}`)
-      priority: 1
       middlewares:
-        - name: redirect-to-https-redirect-{{ $fullName }}
+        - name: redirect-to-https
+          namespace: traefik
       services:
-        - kind: TraefikService
-          name: noop@internal
----
-apiVersion: traefik.containo.us/v1alpha1
-kind: Middleware
-metadata:
-  name: redirect-to-https-redirect-{{ $fullName }}
-  labels:
-    {{- include "generic-app.labels" . | nindent 4 }}
-spec:
-  redirectScheme:
-    scheme: https
-    permanent: true
+        - name: {{ $fullName }}
+          port: {{ $.Values.port }}
 {{- end }}

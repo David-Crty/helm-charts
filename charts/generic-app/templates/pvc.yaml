@@ -1,18 +1,101 @@
 # pvc from values.yaml
+{{- $fullName := include "generic-app.fullname" . -}}
 {{- range $volumeName, $volume := .Values.volumes }}
-kind: PersistentVolumeClaim
+{{- if $volume }}
+{{- if $volume.s3Driver }}
 apiVersion: v1
+kind: PersistentVolume
 metadata:
-  name: {{ include "generic-app.fullname" . }}-{{ $volumeName }}
+  name: {{ $fullName }}-{{ $volumeName }}
+  labels:
+    {{- include "generic-app.labels" $ | nindent 4 }}
+spec:
+  capacity:
+    storage: 1200Gi # ignored, required
+  accessModes:
+    - ReadWriteMany # supported options: ReadWriteMany / ReadOnlyMany
+  mountOptions:
+    {{- if $.Values.runAsUser }}
+    - uid={{ $.Values.runAsUser }}
+    - gid={{ $.Values.runAsUser }}
+    - allow-other
+    {{- end }}
+    - allow-delete
+    - region {{ $volume.s3Driver.region }}
+    - prefix {{ $volume.s3Driver.prefix | replace "${APP_NAME}" $fullName | trimSuffix "/" }}/
+    {{- if $volume.s3Driver.hostCache }}
+    - cache /tmp/s3-bucket-cache-{{ $fullName }}
+    - metadata-ttl 300
+    - max-cache-size {{ $volume.s3Driver.hostCacheSize | default "500" }}
+    {{- end }}
+  csi:
+    driver: s3.csi.aws.com # required
+    volumeHandle: s3-csi-driver-volume
+    volumeAttributes:
+      bucketName: {{ $volume.s3Driver.bucketName }}
+---
+{{- if $volume.s3Driver.hostCache }}
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: s3-bucket-cache-{{ $fullName }}
+spec:
+  storageClassName: manual
+  accessModes:
+    - ReadWriteMany
+  hostPath:
+    path: /tmp/s3-bucket-cache-{{ $fullName }}
+    type: DirectoryOrCreate
+  capacity:
+    storage: {{ $volume.s3Driver.hostCacheSize | default "500" }}Mi
+  claimRef:
+    namespace: default
+    name: s3-bucket-cache-{{ $fullName }}
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: s3-bucket-cache-{{ $fullName }}
+spec:
+  storageClassName: manual
+  resources:
+    requests:
+      storage: {{ $volume.s3Driver.hostCacheSize | default "500" }}Mi
+  volumeName: s3-bucket-cache-{{ $fullName }}
+  accessModes:
+    - ReadWriteMany
+---
+{{- end }}
+{{- end }}
+{{- if not $volume.configMap }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ $fullName }}-{{ $volumeName }}
   labels:
     {{- include "generic-app.labels" $ | nindent 4 }}
 spec:
   accessModes:
+    {{- if $volume.s3Driver }}
+    - ReadWriteMany # supported options: ReadWriteMany / ReadOnlyMany
+    {{- else }}
     - ReadWriteOnce
+    {{- end }}
+  volumeName: {{ $fullName }}-{{ $volumeName }}
+  {{- if $volume.s3Driver }}
+  storageClassName: "" # required for static provisioning
+  resources:
+    requests:
+      storage: 1200Gi # ignored, required
+  {{- else }}
+  storageClassName: {{ $volume.storageClass | default "gp2" | quote }}
   resources:
     requests:
       storage: {{ $volume.size }}
-  storageClassName: {{ $volume.storageClass }}
   volumeMode: Filesystem
----
+  {{- end }}
+{{- end }}
+{{- end }}
 {{- end }}

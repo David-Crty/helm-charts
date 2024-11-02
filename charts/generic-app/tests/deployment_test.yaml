@@ -1,7 +1,29 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+
 suite: test deployment
+release:
+  name: test
+chart:
+  version: 0.1.0
 templates:
   - deployment.yaml
 tests:
+  - it: should have init containers
+    set:
+      initContainers:
+        - name: db-migrate
+          command: [ 'bin/console', 'doctrine:migrations:migrate', '-n' ]
+    asserts:
+      - equal:
+          path: spec.template.spec.initContainers[0]
+          value:
+            name: db-migrate-test-generic-app
+            image: hello-world:latest
+            imagePullPolicy: Always
+            command:
+              - bin/console
+              - doctrine:migrations:migrate
+              - '-n'
   - it: should have volume mounts for data
     set:
       volumes:
@@ -9,5 +31,34 @@ tests:
           size: 1Gi
           storageClass: ""
           mountPath: /data
+    asserts:
+      - matchSnapshot: {}
+  - it: should have php production envs
+    set:
+      webdevopsPhpProductionEnvs: true
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: php.opcache.validate_timestamps
+            value: "0"
+  - it: should have volume mounts for configmap
+    set:
+      volumes:
+        cm:
+          mountPath: /data
+          configMap:
+            name: my-configmap
+    asserts:
+      - matchSnapshot: {}
+  - it: should have a worker pod
+    set:
+      env:
+        TEST: test
+      workers:
+        consumer:
+          command: [ 'bin/console', 'messenger:consume', 'async', '-vv' ]
+          env:
+            TEST: test
     asserts:
       - matchSnapshot: {}

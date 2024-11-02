@@ -1,22 +1,137 @@
-should work:
+should have a worker pod:
   1: |
     apiVersion: apps/v1
     kind: Deployment
     metadata:
       annotations:
-        link.argocd.argoproj.io/external-link: https://hello-world.com
+        link.argocd.argoproj.io/external-link: https://
       labels:
-        app.kubernetes.io/instance: RELEASE-NAME
+        app.kubernetes.io/instance: test
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: generic-app
-        helm.sh/chart: generic-app-0.1.10
-      name: web-RELEASE-NAME-generic-app
+        helm.sh/chart: generic-app-0.1.0
+      name: test-generic-app
     spec:
       replicas: 1
       revisionHistoryLimit: 3
       selector:
         matchLabels:
-          app.kubernetes.io/instance: RELEASE-NAME
+          app.kubernetes.io/component: web
+          app.kubernetes.io/instance: test
+          app.kubernetes.io/name: generic-app
+      strategy:
+        rollingUpdate:
+          maxSurge: 1
+          maxUnavailable: 0
+        type: RollingUpdate
+      template:
+        metadata:
+          annotations:
+            checksum/env: 16892e71d2bf2d62ceab279ed42d021ff8d0bb0c3a6ad35677fdb74d7760092c
+            checksum/envEncrypted: 52133ddfcd583280388a8bbfb67a417b6b660f75bc63ec1b01beec811d4498ef
+          labels:
+            app.kubernetes.io/component: web
+            app.kubernetes.io/instance: test
+            app.kubernetes.io/name: generic-app
+        spec:
+          containers:
+            - envFrom:
+                - configMapRef:
+                    name: test-generic-app
+              image: hello-world:latest
+              imagePullPolicy: Always
+              lifecycle:
+                preStop:
+                  exec:
+                    command:
+                      - sleep
+                      - "10"
+              name: test-generic-app
+              ports:
+                - containerPort: 80
+                  name: http
+              resources:
+                limits:
+                  ephemeral-storage: 2Gi
+                  memory: 512Mi
+                requests:
+                  cpu: 50m
+                  ephemeral-storage: 1Gi
+                  memory: 128Mi
+          serviceAccountName: default
+  2: |
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      labels:
+        app.kubernetes.io/instance: test
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: generic-app
+        helm.sh/chart: generic-app-0.1.0
+      name: test-generic-app-consumer
+    spec:
+      replicas: null
+      revisionHistoryLimit: 3
+      selector:
+        matchLabels:
+          app.kubernetes.io/component: worker
+          app.kubernetes.io/instance: test
+          app.kubernetes.io/name: generic-app
+          app.kubernetes.io/name-worker: test-generic-app-consumer
+      template:
+        metadata:
+          annotations:
+            checksum/env: 16892e71d2bf2d62ceab279ed42d021ff8d0bb0c3a6ad35677fdb74d7760092c
+            checksum/envEncrypted: 52133ddfcd583280388a8bbfb67a417b6b660f75bc63ec1b01beec811d4498ef
+          labels:
+            app.kubernetes.io/component: worker
+            app.kubernetes.io/instance: test
+            app.kubernetes.io/name: generic-app
+            app.kubernetes.io/name-worker: test-generic-app-consumer
+        spec:
+          containers:
+            - command:
+                - bin/console
+                - messenger:consume
+                - async
+                - -vv
+              env:
+                - name: TEST
+                  value: test
+              envFrom:
+                - configMapRef:
+                    name: test-generic-app
+              image: hello-world:latest
+              imagePullPolicy: Always
+              name: test-generic-app-consumer
+              resources:
+                limits:
+                  ephemeral-storage: 2Gi
+                  memory: 512Mi
+                requests:
+                  cpu: 50m
+                  ephemeral-storage: 1Gi
+                  memory: 128Mi
+should have volume mounts for configmap:
+  1: |
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      annotations:
+        link.argocd.argoproj.io/external-link: https://
+      labels:
+        app.kubernetes.io/instance: test
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: generic-app
+        helm.sh/chart: generic-app-0.1.0
+      name: test-generic-app
+    spec:
+      replicas: 1
+      revisionHistoryLimit: 3
+      selector:
+        matchLabels:
+          app.kubernetes.io/component: web
+          app.kubernetes.io/instance: test
           app.kubernetes.io/name: generic-app
       strategy:
         rollingUpdate:
@@ -29,11 +144,12 @@ should work:
             checksum/env: 52133ddfcd583280388a8bbfb67a417b6b660f75bc63ec1b01beec811d4498ef
             checksum/envEncrypted: 52133ddfcd583280388a8bbfb67a417b6b660f75bc63ec1b01beec811d4498ef
           labels:
-            app.kubernetes.io/instance: RELEASE-NAME
+            app.kubernetes.io/component: web
+            app.kubernetes.io/instance: test
             app.kubernetes.io/name: generic-app
         spec:
           containers:
-            - image: map[tag:latest]
+            - image: hello-world:latest
               imagePullPolicy: Always
               lifecycle:
                 preStop:
@@ -41,14 +157,88 @@ should work:
                     command:
                       - sleep
                       - "10"
-              name: web-RELEASE-NAME-generic-app
+              name: test-generic-app
               ports:
                 - containerPort: 80
                   name: http
+              resources:
+                limits:
+                  ephemeral-storage: 2Gi
+                  memory: 512Mi
+                requests:
+                  cpu: 50m
+                  ephemeral-storage: 1Gi
+                  memory: 128Mi
+              volumeMounts:
+                - mountPath: /data
+                  name: cm
+          serviceAccountName: default
+          volumes:
+            - configMap:
+                name: my-configmap
+              name: cm
+should have volume mounts for data:
+  1: |
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      annotations:
+        link.argocd.argoproj.io/external-link: https://
+      labels:
+        app.kubernetes.io/instance: test
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: generic-app
+        helm.sh/chart: generic-app-0.1.0
+      name: test-generic-app
+    spec:
+      replicas: 1
+      revisionHistoryLimit: 3
+      selector:
+        matchLabels:
+          app.kubernetes.io/component: web
+          app.kubernetes.io/instance: test
+          app.kubernetes.io/name: generic-app
+      strategy:
+        rollingUpdate:
+          maxSurge: 1
+          maxUnavailable: 0
+        type: RollingUpdate
+      template:
+        metadata:
+          annotations:
+            checksum/env: 52133ddfcd583280388a8bbfb67a417b6b660f75bc63ec1b01beec811d4498ef
+            checksum/envEncrypted: 52133ddfcd583280388a8bbfb67a417b6b660f75bc63ec1b01beec811d4498ef
+          labels:
+            app.kubernetes.io/component: web
+            app.kubernetes.io/instance: test
+            app.kubernetes.io/name: generic-app
+        spec:
+          containers:
+            - image: hello-world:latest
+              imagePullPolicy: Always
+              lifecycle:
+                preStop:
+                  exec:
+                    command:
+                      - sleep
+                      - "10"
+              name: test-generic-app
+              ports:
+                - containerPort: 80
+                  name: http
+              resources:
+                limits:
+                  ephemeral-storage: 2Gi
+                  memory: 512Mi
+                requests:
+                  cpu: 50m
+                  ephemeral-storage: 1Gi
+                  memory: 128Mi
               volumeMounts:
                 - mountPath: /data
                   name: data
+          serviceAccountName: default
           volumes:
             - name: data
               persistentVolumeClaim:
-                claimName: RELEASE-NAME-generic-app-data
+                claimName: test-generic-app-data
