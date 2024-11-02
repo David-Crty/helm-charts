@@ -96,6 +96,7 @@ spec:
       storage: {{ $volume.size }}
   volumeMode: Filesystem
   {{- end }}
+---
 {{- end }}
 {{- end }}
 {{- end }}
