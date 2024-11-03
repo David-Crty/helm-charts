@@ -132,3 +132,19 @@ Create the name of the service account to use
   {{- printf "ERROR: Preset key '%s' invalid. Allowed values are %s" .Values.resources.preset (join "," (keys $presets)) | fail -}}
 {{- end -}}
 {{- end -}}
+
+{{- define "middlewareRedirections" -}}
+{{- if .Values.ingress.redirections }}
+{{- $fullName := include "generic-app.fullname" . -}}
+{{- $middlewares := "" -}}
+{{- range .Values.ingress.redirections }}
+{{- $middlewareName := printf "%s-redirect-to-%s" $fullName (include "toSlug" .to) -}}
+{{- if $middlewares }}
+{{- $middlewares = printf "%s-%s%s@kubernetescrd" $middlewares $middlewareName -}}
+{{- else }}
+{{- $middlewares = printf "%s-%s@kubernetescrd," $.Release.Namespace $middlewareName -}}
+{{- end }}
+{{- end }}
+{{- $middlewares -}}
+{{- end }}
+{{- end }}

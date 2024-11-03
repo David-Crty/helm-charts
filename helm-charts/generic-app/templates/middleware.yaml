@@ -1,0 +1,24 @@
+{{- $fullName := include "generic-app.fullname" . -}}
+{{- if .Values.ingress.enabled }}
+{{- if .Values.ingress.redirections }}
+{{- range .Values.ingress.redirections }}
+apiVersion: traefik.containo.us/v1alpha1
+kind: Middleware
+metadata:
+  name: {{ $fullName }}-redirect-to-{{ .to | include "toSlug" }}
+  labels:
+    {{- include "generic-app.labels" $ | nindent 4 }}
+spec:
+  redirectRegex:
+    {{- $from := .from }}
+    {{- if eq (kindOf $from) "string" }}
+    regex: "^https?://{{ $from | replace "." "\\\\." }}(/.*)"
+    {{- else if eq (kindOf $from) "slice" }}
+    regex: "^https?://({{- range $index, $element := $from }}{{ if $index }}|{{ end }}{{ $element | replace "." "\\\\." }}{{- end }})(/.*)"
+    {{- end }}
+    replacement: "https://{{ .to }}$2"
+    permanent: true
+---
+{{- end }}
+{{- end }}
+{{- end }}

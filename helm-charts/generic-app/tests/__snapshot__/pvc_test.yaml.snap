@@ -136,6 +136,6 @@ should have volume mounts for data:
       resources:
         requests:
           storage: 1Gi
-      storageClassName: gp2
+      storageClassName: ""
       volumeMode: Filesystem
       volumeName: test-generic-app-data

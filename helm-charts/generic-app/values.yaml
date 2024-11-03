@@ -1,5 +1,5 @@
 global:
-  storageClass: "scw-bssd"
+  storageClass: ""
 
 image: hello-world
 tag: latest
@@ -16,6 +16,10 @@ ingress:
   hosts:
     - hello-world.com
   type: Ingress # or IngressRoute
+  redirections: []
+#    - from:
+#        - www.crty.dev
+#      to: crty.dev
 healthCheckPath: ""
 prometheus:
   enabled: false

@@ -1,3 +1,77 @@
+should create middleware redirections:
+  1: |
+    apiVersion: networking.k8s.io/v1
+    kind: Ingress
+    metadata:
+      annotations:
+        cert-manager.io/cluster-issuer: letsencrypt-prod
+        traefik.ingress.kubernetes.io/router.middlewares: NAMESPACE-test-generic-app-redirect-to-crty-dev@kubernetescrd,traefik-redirect-to-https@kubernetescrd
+      name: test-generic-app
+    spec:
+      ingressClassName: traefik
+      rules:
+        - host: crty.dev
+          http:
+            paths:
+              - backend:
+                  service:
+                    name: test-generic-app
+                    port:
+                      number: 80
+                path: /
+                pathType: Prefix
+        - host: www.crty.dev
+          http:
+            paths:
+              - backend:
+                  service:
+                    name: test-generic-app
+                    port:
+                      number: 80
+                path: /
+                pathType: Prefix
+        - host: www.crty.com
+          http:
+            paths:
+              - backend:
+                  service:
+                    name: test-generic-app
+                    port:
+                      number: 80
+                path: /
+                pathType: Prefix
+        - host: crty.com
+          http:
+            paths:
+              - backend:
+                  service:
+                    name: test-generic-app
+                    port:
+                      number: 80
+                path: /
+                pathType: Prefix
+      tls:
+        - hosts:
+            - crty.dev
+            - www.crty.dev
+            - www.crty.com
+            - crty.com
+          secretName: test-generic-app-cert
+  2: |
+    apiVersion: traefik.containo.us/v1alpha1
+    kind: Middleware
+    metadata:
+      labels:
+        app.kubernetes.io/instance: test
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: generic-app
+        helm.sh/chart: generic-app-0.1.0
+      name: test-generic-app-redirect-to-crty-dev
+    spec:
+      redirectRegex:
+        permanent: true
+        regex: ^https?://(www\.crty\.dev|www\.crty\.com|crty\.com)(/.*)
+        replacement: https://crty.dev$2
 should have ingress:
   1: |
     apiVersion: networking.k8s.io/v1

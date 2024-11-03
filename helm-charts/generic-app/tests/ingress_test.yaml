@@ -7,6 +7,7 @@ chart:
   version: 0.1.0
 templates:
   - ingress.yaml
+  - middleware.yaml
 tests:
   - it: should have ingress
     set:
@@ -21,5 +22,22 @@ tests:
       ingress:
         enabled: true
         keycloakProtection: true
+    asserts:
+      - matchSnapshot: {}
+  - it : should create middleware redirections
+    set:
+      ingress:
+        enabled: true
+        hosts:
+          - crty.dev
+          - www.crty.dev
+          - www.crty.com
+          - crty.com
+        redirections:
+          - from:
+              - www.crty.dev
+              - www.crty.com
+              - crty.com
+            to: crty.dev
     asserts:
       - matchSnapshot: {}

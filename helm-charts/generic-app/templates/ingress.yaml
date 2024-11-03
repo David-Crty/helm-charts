@@ -7,7 +7,7 @@ metadata:
   annotations:
     {{- if .Values.ingress.https }}
     cert-manager.io/cluster-issuer: letsencrypt-prod
-    traefik.ingress.kubernetes.io/router.middlewares: traefik-redirect-to-https@kubernetescrd{{- if .Values.ingress.keycloakProtection }},traefik-keycloakopenid@kubernetescrd{{- end }}
+    traefik.ingress.kubernetes.io/router.middlewares: {{ include "middlewareRedirections" . }}traefik-redirect-to-https@kubernetescrd{{- if .Values.ingress.keycloakProtection }},traefik-keycloakopenid@kubernetescrd{{- end }}
     {{- end }}
     {{- range $key, $value := .Values.ingress.annotations }}
     {{ $key }}: {{ $value | quote }}
