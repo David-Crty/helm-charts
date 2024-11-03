@@ -2,4 +2,4 @@ apiVersion: v2
 name: generic-app
 description: A Helm Chart for Generic App
 type: application
-version: 0.3.3
+version: 0.3.4
