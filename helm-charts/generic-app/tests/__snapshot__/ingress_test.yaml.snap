@@ -1,0 +1,52 @@
+should have ingress:
+  1: |
+    apiVersion: networking.k8s.io/v1
+    kind: Ingress
+    metadata:
+      annotations:
+        cert-manager.io/cluster-issuer: letsencrypt-prod
+        traefik.ingress.kubernetes.io/router.middlewares: traefik-redirect-to-https@kubernetescrd
+      name: test-generic-app
+    spec:
+      ingressClassName: traefik
+      rules:
+        - host: test.awstudio.cloud
+          http:
+            paths:
+              - backend:
+                  service:
+                    name: test-generic-app
+                    port:
+                      number: 80
+                path: /
+                pathType: Prefix
+      tls:
+        - hosts:
+            - test.awstudio.cloud
+          secretName: test-generic-app-cert
+should ingress with keycloak middleware annotation:
+  1: |
+    apiVersion: networking.k8s.io/v1
+    kind: Ingress
+    metadata:
+      annotations:
+        cert-manager.io/cluster-issuer: letsencrypt-prod
+        traefik.ingress.kubernetes.io/router.middlewares: traefik-redirect-to-https@kubernetescrd,traefik-keycloakopenid@kubernetescrd
+      name: test-generic-app
+    spec:
+      ingressClassName: traefik
+      rules:
+        - host: hello-world.com
+          http:
+            paths:
+              - backend:
+                  service:
+                    name: test-generic-app
+                    port:
+                      number: 80
+                path: /
+                pathType: Prefix
+      tls:
+        - hosts:
+            - hello-world.com
+          secretName: test-generic-app-cert

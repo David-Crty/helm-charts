@@ -1,0 +1,14 @@
+# a pod disruption budget for the generic-app with a minAvailable of 1 if .Values.app.pdb.enabled
+{{- if .Values.pdb.enabled }}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "generic-app.fullname" . }}
+  labels:
+    {{- include "generic-app.labels" . | nindent 4 }}
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      {{- include "generic-app.webSelectorLabels" . | nindent 6 }}
+{{- end }}

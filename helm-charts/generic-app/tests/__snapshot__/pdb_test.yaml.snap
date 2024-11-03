@@ -1,0 +1,18 @@
+should have pod disruption budget:
+  1: |
+    apiVersion: policy/v1
+    kind: PodDisruptionBudget
+    metadata:
+      labels:
+        app.kubernetes.io/instance: test
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: generic-app
+        helm.sh/chart: generic-app-0.1.0
+      name: test-generic-app
+    spec:
+      minAvailable: 1
+      selector:
+        matchLabels:
+          app.kubernetes.io/component: web
+          app.kubernetes.io/instance: test
+          app.kubernetes.io/name: generic-app

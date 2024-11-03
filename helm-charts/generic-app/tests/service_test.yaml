@@ -1,0 +1,13 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+
+suite: test service
+release:
+  name: test
+chart:
+  version: 0.1.0
+templates:
+  - service.yaml
+tests:
+  - it: should have a service
+    asserts:
+      - matchSnapshot: {}

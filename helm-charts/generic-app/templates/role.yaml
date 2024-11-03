@@ -1,0 +1,25 @@
+{{- if and .Values.serviceAccount.create .Values.serviceAccount.authorizedRules -}}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ include "generic-app.fullname" . }}
+  labels:
+    {{- include "generic-app.labels" . | nindent 4 }}
+rules:
+{{- toYaml .Values.serviceAccount.authorizedRules | nindent 2 }}
+{{- if .Values.serviceAccount.authorizedRulesExtraNamespaces }}
+{{- range .Values.serviceAccount.authorizedRulesExtraNamespaces }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ include "generic-app.fullname" $ }}
+  namespace: {{ . }}
+  labels:
+    {{- include "generic-app.labels" $ | nindent 4 }}
+rules:
+{{- toYaml $.Values.serviceAccount.authorizedRules | nindent 2 }}
+{{- end }}
+{{- end }}
+{{- end -}}

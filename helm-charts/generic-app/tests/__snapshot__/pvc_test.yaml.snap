@@ -1,0 +1,141 @@
+should have s3 driver volume mounts:
+  1: |
+    apiVersion: v1
+    kind: PersistentVolume
+    metadata:
+      labels:
+        app.kubernetes.io/instance: test
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: generic-app
+        helm.sh/chart: generic-app-0.1.0
+      name: test-generic-app-public-files
+    spec:
+      accessModes:
+        - ReadWriteMany
+      capacity:
+        storage: 1200Gi
+      csi:
+        driver: s3.csi.aws.com
+        volumeAttributes:
+          bucketName: awstudio-cms-public-files
+        volumeHandle: s3-csi-driver-volume
+      mountOptions:
+        - allow-delete
+        - region eu-west-3
+        - prefix test-generic-app/
+  2: |
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      labels:
+        app.kubernetes.io/instance: test
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: generic-app
+        helm.sh/chart: generic-app-0.1.0
+      name: test-generic-app-public-files
+    spec:
+      accessModes:
+        - ReadWriteMany
+      resources:
+        requests:
+          storage: 1200Gi
+      storageClassName: ""
+      volumeName: test-generic-app-public-files
+should have s3 driver volume mounts with host cache:
+  1: |
+    apiVersion: v1
+    kind: PersistentVolume
+    metadata:
+      labels:
+        app.kubernetes.io/instance: test
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: generic-app
+        helm.sh/chart: generic-app-0.1.0
+      name: test-generic-app-public-files
+    spec:
+      accessModes:
+        - ReadWriteMany
+      capacity:
+        storage: 1200Gi
+      csi:
+        driver: s3.csi.aws.com
+        volumeAttributes:
+          bucketName: awstudio-cms-public-files
+        volumeHandle: s3-csi-driver-volume
+      mountOptions:
+        - allow-delete
+        - region eu-west-3
+        - prefix test-generic-app/
+        - cache /tmp/s3-bucket-cache-test-generic-app
+        - metadata-ttl 300
+        - max-cache-size 500
+  2: |
+    apiVersion: v1
+    kind: PersistentVolume
+    metadata:
+      name: s3-bucket-cache-test-generic-app
+    spec:
+      accessModes:
+        - ReadWriteMany
+      capacity:
+        storage: 500Mi
+      claimRef:
+        apiVersion: v1
+        kind: PersistentVolumeClaim
+        name: s3-bucket-cache-test-generic-app
+        namespace: default
+      hostPath:
+        path: /tmp/s3-bucket-cache-test-generic-app
+        type: DirectoryOrCreate
+      storageClassName: manual
+  3: |
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      name: s3-bucket-cache-test-generic-app
+    spec:
+      accessModes:
+        - ReadWriteMany
+      resources:
+        requests:
+          storage: 500Mi
+      storageClassName: manual
+      volumeName: s3-bucket-cache-test-generic-app
+  4: |
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      labels:
+        app.kubernetes.io/instance: test
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: generic-app
+        helm.sh/chart: generic-app-0.1.0
+      name: test-generic-app-public-files
+    spec:
+      accessModes:
+        - ReadWriteMany
+      resources:
+        requests:
+          storage: 1200Gi
+      storageClassName: ""
+      volumeName: test-generic-app-public-files
+should have volume mounts for data:
+  1: |
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      labels:
+        app.kubernetes.io/instance: test
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: generic-app
+        helm.sh/chart: generic-app-0.1.0
+      name: test-generic-app-data
+    spec:
+      accessModes:
+        - ReadWriteOnce
+      resources:
+        requests:
+          storage: 1Gi
+      storageClassName: gp2
+      volumeMode: Filesystem
+      volumeName: test-generic-app-data

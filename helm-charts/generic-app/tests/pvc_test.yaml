@@ -1,0 +1,52 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+
+suite: test deployment
+release:
+  name: test
+chart:
+  version: 0.1.0
+templates:
+  - pvc.yaml
+tests:
+  - it: should have s3 driver volume mounts
+    set:
+      volumes:
+        public-files:
+          mountPath: /app/public/files
+          s3Driver:
+            bucketName: awstudio-cms-public-files
+            region: eu-west-3
+            prefix: "${APP_NAME}"
+    asserts:
+      - matchSnapshot: {}
+  - it: should have s3 driver volume mounts with host cache
+    set:
+      volumes:
+        public-files:
+          mountPath: /app/public/files
+          s3Driver:
+            bucketName: awstudio-cms-public-files
+            region: eu-west-3
+            prefix: "${APP_NAME}"
+            hostCache: true
+    asserts:
+      - matchSnapshot: {}
+  - it: should have volume mounts for data
+    set:
+      volumes:
+        data:
+          size: 1Gi
+          storageClass: ""
+          mountPath: /data
+    asserts:
+      - matchSnapshot: {}
+  - it: should not have volume mounts for configMap
+    set:
+      volumes:
+        config:
+          mountPath: /app/config
+          configMap:
+            name: nginx-reverse-proxy-config
+    asserts:
+      - hasDocuments:
+          count: 0

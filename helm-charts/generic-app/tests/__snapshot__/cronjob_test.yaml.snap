@@ -1,0 +1,31 @@
+should have a cronjob:
+  1: |
+    apiVersion: batch/v1
+    kind: CronJob
+    metadata:
+      labels:
+        app.kubernetes.io/instance: test
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: generic-app
+        helm.sh/chart: generic-app-0.1.0
+      name: test-generic-app-cron-1
+    spec:
+      jobTemplate:
+        metadata:
+          labels:
+            app.kubernetes.io/component: cronjob
+            app.kubernetes.io/instance: test
+            app.kubernetes.io/name: generic-app
+          name: test-generic-app-cron-1
+        spec:
+          template:
+            spec:
+              containers:
+                - command:
+                    - echo
+                    - hello world
+                  image: hello-world
+                  imagePullPolicy: Always
+                  name: test-generic-app-cron-1
+              restartPolicy: OnFailure
+      schedule: '* * * * *'

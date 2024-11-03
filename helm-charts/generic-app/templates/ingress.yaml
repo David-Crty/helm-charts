@@ -1,0 +1,38 @@
+{{- if and .Values.ingress.enabled (eq .Values.ingress.type "Ingress") }}
+{{- $fullName := include "generic-app.fullname" . -}}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ $fullName }}
+  annotations:
+    {{- if .Values.ingress.https }}
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    traefik.ingress.kubernetes.io/router.middlewares: traefik-redirect-to-https@kubernetescrd{{- if .Values.ingress.keycloakProtection }},traefik-keycloakopenid@kubernetescrd{{- end }}
+    {{- end }}
+    {{- range $key, $value := .Values.ingress.annotations }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+spec:
+  ingressClassName: traefik
+  {{- if .Values.ingress.https }}
+  tls:
+    - secretName: {{ $fullName }}-cert
+      hosts:
+        {{- range .Values.ingress.hosts }}
+        - {{ . | quote }}
+        {{- end }}
+  {{- end }}
+  rules:
+    {{- range .Values.ingress.hosts }}
+    - host: {{ . }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ $fullName }}
+                port:
+                  number: {{ $.Values.port }}
+    {{- end }}
+{{- end }}

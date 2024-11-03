@@ -1,0 +1,20 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+
+suite: test cronjob
+release:
+  name: test
+chart:
+  version: 0.1.0
+templates:
+  - cronjob.yaml
+tests:
+  - it: should have a cronjob
+    set:
+      cronJobs:
+        cron-1:
+          command:
+            - echo
+            - "hello world"
+          schedule: "* * * * *"
+    asserts:
+      - matchSnapshot: {}
