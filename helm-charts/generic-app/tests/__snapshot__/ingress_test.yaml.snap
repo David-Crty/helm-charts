@@ -66,7 +66,7 @@ should create middleware redirections:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: generic-app
         helm.sh/chart: generic-app-0.1.0
-      name: test-generic-app-redirect-to-crty-dev
+      name: NAMESPACE-test-generic-app-redirect-to-crty-dev
     spec:
       redirectRegex:
         permanent: true
