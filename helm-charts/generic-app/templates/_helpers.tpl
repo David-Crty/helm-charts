@@ -76,12 +76,12 @@ Create the name of the service account to use
 
 {{- define "generic-app.image" }}
 {{- $tag := "" }}
-{{- if .Values.tag }}
-{{- $tag = .Values.tag }}
+{{- if .tag }}
+{{- $tag = .tag }}
 {{- else }}
 {{- $tag = "latest" }}
 {{- end }}
-{{- printf "%s:%s" .Values.image $tag }}
+{{- printf "%s:%s" .image $tag }}
 {{- end }}
 
 {{- define "toSlug" -}}

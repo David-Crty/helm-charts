@@ -39,7 +39,7 @@ spec:
       initContainers:
         {{- range $initContainer := .Values.initContainers }}
         - name: {{ $initContainer.name | include "toSlug" }}-{{ $fullName }}
-          image: {{ if $initContainer.image }}{{ include "generic-app.image" $ | quote }}{{ else }}{{ include "generic-app.image" $ | quote }}{{ end }}
+          image: {{ if $initContainer.image }}{{ include "generic-app.image" $initContainer | quote }}{{ else }}{{ include "generic-app.image" $.Values | quote }}{{ end }}
           imagePullPolicy: Always
           {{- if $.Values.runAsUser }}
           securityContext:
@@ -70,7 +70,7 @@ spec:
       {{- end }}
       containers:
         - name: {{ $fullName }}
-          image: {{ include "generic-app.image" $ | quote }}
+          image: {{ include "generic-app.image" $.Values | quote }}
           imagePullPolicy: Always
           resources: {{- include "common.resources.preset" $ | nindent 12 }}
           {{- if .Values.runAsUser }}
@@ -190,7 +190,7 @@ spec:
     spec:
       containers:
         - name: {{ $fullName }}-{{ $keyWorker }}
-          image: {{ if $valuesWorker.image }}{{ include "generic-app.image" $ | quote }}{{ else }}{{ include "generic-app.image" $ | quote }}{{ end }}
+          image: {{ if $valuesWorker.image }}{{ include "generic-app.image" $valuesWorker.image | quote }}{{ else }}{{ include "generic-app.image" $.Values | quote }}{{ end }}
           imagePullPolicy: Always
           resources: {{- include "common.resources.preset" $ | nindent 12 }}
           command:

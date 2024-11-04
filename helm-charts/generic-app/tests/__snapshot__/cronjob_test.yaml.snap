@@ -24,7 +24,7 @@ should have a cronjob:
                 - command:
                     - echo
                     - hello world
-                  image: hello-world
+                  image: hello-world:latest
                   imagePullPolicy: Always
                   name: test-generic-app-cron-1
               restartPolicy: OnFailure

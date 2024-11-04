@@ -96,7 +96,7 @@ should have a worker pod:
                 - async
                 - -vv
               env:
-                - name: TEST
+                - name: TEST_CONSUMER
                   value: test
               envFrom:
                 - configMapRef:

@@ -6,7 +6,7 @@ tag: latest
 port: 80
 replicas: 1
 resources:
-  preset: "micro"
+  preset: "micro" # nano, micro, small, medium, large, xlarge, 2xlarge
   enableCpuLimit: false
 ingress:
   enabled: true

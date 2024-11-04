@@ -22,7 +22,7 @@ spec:
       template:
         spec:
           containers:
-          - image: {{ $values.image }}
+          - image: {{ include "generic-app.image" $.Values | quote }}
             name: {{ $fullName }}-{{ $name }}
             imagePullPolicy: Always
             command:

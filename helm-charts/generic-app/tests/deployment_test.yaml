@@ -24,6 +24,24 @@ tests:
               - bin/console
               - doctrine:migrations:migrate
               - '-n'
+  - it: should have init containers with custom image
+    set:
+      initContainers:
+        - name: db-migrate
+          command: [ 'bin/console', 'doctrine:migrations:migrate', '-n' ]
+          image: hello-world-innit
+          tag: "123"
+    asserts:
+      - equal:
+          path: spec.template.spec.initContainers[0]
+          value:
+            name: db-migrate-test-generic-app
+            image: hello-world-innit:123
+            imagePullPolicy: Always
+            command:
+              - bin/console
+              - doctrine:migrations:migrate
+              - '-n'
   - it: should have volume mounts for data
     set:
       volumes:
@@ -59,6 +77,6 @@ tests:
         consumer:
           command: [ 'bin/console', 'messenger:consume', 'async', '-vv' ]
           env:
-            TEST: test
+            TEST_CONSUMER: test
     asserts:
       - matchSnapshot: {}
