@@ -138,13 +138,13 @@ Create the name of the service account to use
 {{- $fullName := include "generic-app.fullname" . -}}
 {{- $middlewares := "" -}}
 {{- range .Values.ingress.redirections }}
-{{- $middlewareName := printf "%s-redirect-to-%s" $fullName (include "toSlug" .to) -}}
+{{- $middlewareName := printf "traefik-%s-redirect-to-%s@kubernetescrd" $fullName (include "toSlug" .to) -}}
 {{- if $middlewares }}
-{{- $middlewares = printf "%s-%s%s@kubernetescrd" $middlewares $middlewareName -}}
+{{- $middlewares = printf "%s,%s" $middlewares $middlewareName -}}
 {{- else }}
-{{- $middlewares = printf "%s-%s@kubernetescrd," $.Release.Namespace $middlewareName -}}
+{{- $middlewares = $middlewareName -}}
 {{- end }}
 {{- end }}
-{{- $middlewares -}}
+{{- $middlewares -}},
 {{- end }}
 {{- end }}
