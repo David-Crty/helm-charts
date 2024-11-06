@@ -18,3 +18,17 @@ tests:
           schedule: "* * * * *"
     asserts:
       - matchSnapshot: {}
+  - it: should have a cronjob with custom image
+    set:
+      cronJobs:
+        cron-1:
+          image: "busybox"
+          tag: "19"
+          command:
+            - echo
+            - "hello world"
+          schedule: "* * * * *"
+    asserts:
+      - equal:
+          path: spec.jobTemplate.spec.template.spec.containers[0].image
+          value: busybox:19

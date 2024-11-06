@@ -6,7 +6,6 @@ apiVersion: traefik.io/v1alpha1
 kind: Middleware
 metadata:
   name: {{ $fullName }}-redirect-to-{{ .to | include "toSlug" }}
-  namespace: traefik
   labels:
     {{- include "generic-app.labels" $ | nindent 4 }}
 spec:

@@ -1,0 +1,26 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json
+
+suite: test cronjob
+release:
+  name: test
+chart:
+  version: 0.1.0
+templates:
+  - middleware.yaml
+  - ingress.yaml
+tests:
+  - it: should have a redirect middleware
+    set:
+      ingress:
+        enabled: true
+        hosts:
+          - crty.dev
+          - www.crty.dev
+          - infra.crty.dev
+        redirections:
+          - from:
+              - www.crty.dev
+              - infra.crty.dev
+            to: crty.dev
+    asserts:
+      - matchSnapshot: {}
