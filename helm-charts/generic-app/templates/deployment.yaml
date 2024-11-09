@@ -41,9 +41,11 @@ spec:
         - name: {{ $initContainer.name | include "toSlug" }}-{{ $fullName }}
           image: {{ if $initContainer.image }}{{ include "generic-app.image" $initContainer | quote }}{{ else }}{{ include "generic-app.image" $.Values | quote }}{{ end }}
           imagePullPolicy: Always
-          {{- if $.Values.runAsUser }}
+          {{- if $.Values.securityContext }}
           securityContext:
-            runAsUser: {{ $.Values.runAsUser }}
+            {{- with $.Values.securityContext }}
+            {{- toYaml . | nindent 14 }}
+            {{- end }}
           {{- end }}
           command:
             {{- range $initContainer.command }}
@@ -73,9 +75,11 @@ spec:
           image: {{ include "generic-app.image" $.Values | quote }}
           imagePullPolicy: Always
           resources: {{- include "common.resources.preset" $ | nindent 12 }}
-          {{- if .Values.runAsUser }}
+          {{- if .Values.securityContext }}
           securityContext:
-              runAsUser: {{ .Values.runAsUser }}
+            {{- with .Values.securityContext }}
+            {{- toYaml . | nindent 14 }}
+            {{- end }}
           {{- end }}
           ports:
             - name: http
@@ -193,6 +197,12 @@ spec:
           image: {{ if $valuesWorker.image }}{{ include "generic-app.image" $valuesWorker.image | quote }}{{ else }}{{ include "generic-app.image" $.Values | quote }}{{ end }}
           imagePullPolicy: Always
           resources: {{- include "common.resources.preset" $ | nindent 12 }}
+          {{- if $.Values.securityContext }}
+          securityContext:
+            {{- with $.Values.securityContext }}
+            {{- toYaml . | nindent 14 }}
+            {{- end }}
+          {{- end }}
           command:
             {{- range $valuesWorker.command }}
             - {{ . | quote }}

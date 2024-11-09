@@ -50,7 +50,7 @@ tests:
           storageClass: ""
           mountPath: /data
     asserts:
-      - matchSnapshot: {}
+      - matchSnapshot: { }
   - it: should have php production envs
     set:
       webdevopsPhpProductionEnvs: true
@@ -68,7 +68,7 @@ tests:
           configMap:
             name: my-configmap
     asserts:
-      - matchSnapshot: {}
+      - matchSnapshot: { }
   - it: should have a worker pod
     set:
       env:
@@ -79,4 +79,19 @@ tests:
           env:
             TEST_CONSUMER: test
     asserts:
-      - matchSnapshot: {}
+      - matchSnapshot: { }
+  - it: should have a security context
+    set:
+      securityContext:
+        runAsUser: 1000
+        capabilities:
+          add:
+            - NET_ADMIN
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].securityContext
+          value:
+            runAsUser: 1000
+            capabilities:
+              add:
+                - NET_ADMIN

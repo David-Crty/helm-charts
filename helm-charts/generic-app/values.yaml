@@ -30,7 +30,8 @@ serviceAccount:
   authorizedRules: []
   annotations: {}
   authorizedRulesExtraNamespaces: []
-runAsUser: ""
+securityContext: {}
+#  runAsUser: ""
 webdevopsPhpProductionEnvs: false
 trustedProxiesEnv: false
 env: {}
