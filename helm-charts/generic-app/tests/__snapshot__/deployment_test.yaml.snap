@@ -20,9 +20,6 @@ should have a worker pod:
           app.kubernetes.io/instance: test
           app.kubernetes.io/name: generic-app
       strategy:
-        rollingUpdate:
-          maxSurge: 1
-          maxUnavailable: 0
         type: RollingUpdate
       template:
         metadata:
@@ -134,9 +131,6 @@ should have volume mounts for configmap:
           app.kubernetes.io/instance: test
           app.kubernetes.io/name: generic-app
       strategy:
-        rollingUpdate:
-          maxSurge: 1
-          maxUnavailable: 0
         type: RollingUpdate
       template:
         metadata:
@@ -199,9 +193,6 @@ should have volume mounts for data:
           app.kubernetes.io/instance: test
           app.kubernetes.io/name: generic-app
       strategy:
-        rollingUpdate:
-          maxSurge: 1
-          maxUnavailable: 0
         type: RollingUpdate
       template:
         metadata:

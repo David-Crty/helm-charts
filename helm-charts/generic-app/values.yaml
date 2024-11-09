@@ -5,6 +5,8 @@ image: hello-world
 tag: latest
 port: 80
 replicas: 1
+updateStrategy:
+  type: RollingUpdate
 resources:
   preset: "micro" # nano, micro, small, medium, large, xlarge, 2xlarge
   enableCpuLimit: false

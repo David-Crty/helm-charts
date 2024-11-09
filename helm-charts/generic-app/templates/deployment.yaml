@@ -13,11 +13,9 @@ spec:
     matchLabels:
       {{- include "generic-app.webSelectorLabels" . | nindent 6 }}
   replicas: {{ .Values.replicas }}
-  strategy:
-    rollingUpdate:
-      maxSurge: 1
-      maxUnavailable: 0
-    type: RollingUpdate
+  {{- if .Values.updateStrategy }}
+  strategy: {{- toYaml .Values.updateStrategy | nindent 4 }}
+  {{- end }}
   template:
     metadata:
       labels:
