@@ -83,7 +83,6 @@ spec:
     {{- else }}
     - ReadWriteOnce
     {{- end }}
-  volumeName: {{ $fullName }}-{{ $volumeName }}
   {{- if $volume.s3Driver }}
   storageClassName: "" # required for static provisioning
   resources:

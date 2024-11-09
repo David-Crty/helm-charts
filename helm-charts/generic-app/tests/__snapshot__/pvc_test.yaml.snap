@@ -40,7 +40,6 @@ should have s3 driver volume mounts:
         requests:
           storage: 1200Gi
       storageClassName: ""
-      volumeName: test-generic-app-public-files
 should have s3 driver volume mounts with host cache:
   1: |
     apiVersion: v1
@@ -118,7 +117,6 @@ should have s3 driver volume mounts with host cache:
         requests:
           storage: 1200Gi
       storageClassName: ""
-      volumeName: test-generic-app-public-files
 should have volume mounts for data:
   1: |
     apiVersion: v1
@@ -138,4 +136,3 @@ should have volume mounts for data:
           storage: 1Gi
       storageClassName: ""
       volumeMode: Filesystem
-      volumeName: test-generic-app-data
