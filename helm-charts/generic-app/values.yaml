@@ -5,6 +5,8 @@ image: hello-world
 tag: latest
 port: 80
 replicas: 1
+command: []
+args: []
 updateStrategy:
   type: RollingUpdate
 resources:

@@ -8,6 +8,12 @@ chart:
 templates:
   - deployment.yaml
 tests:
+  - it: should fail if tag is not a string
+    set:
+      image: "hello-world"
+      tag: 3.20
+    asserts:
+      - failedTemplate: {} # This is a failure, tag should a string
   - it: should have init containers
     set:
       initContainers:
@@ -95,3 +101,16 @@ tests:
             capabilities:
               add:
                 - NET_ADMIN
+  - it: should have a custom command and args
+    set:
+      command: ["/bin/sh", "-c"]
+      args:
+        - echo "hello world"
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].command
+          value: ["/bin/sh", "-c"]
+      - equal:
+          path: spec.template.spec.containers[0].args
+          value:
+            - echo "hello world"

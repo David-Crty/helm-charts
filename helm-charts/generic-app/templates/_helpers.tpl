@@ -77,6 +77,9 @@ Create the name of the service account to use
 {{- define "generic-app.image" }}
 {{- $tag := "" }}
 {{- if .tag }}
+{{- if not (kindIs "string" .tag) }}
+{{- fail "image tag must be a string" }}
+{{- end }}
 {{- $tag = .tag }}
 {{- else }}
 {{- $tag = "latest" }}

@@ -82,6 +82,18 @@ spec:
           ports:
             - name: http
               containerPort: {{ .Values.port }}
+          {{- if .Values.command }}
+          command:
+            {{- range .Values.command }}
+            - {{ . | quote }}
+            {{- end }}
+          {{- end }}
+          {{- if .Values.args }}
+          args:
+            {{- range .Values.args }}
+            - {{ . | quote }}
+            {{- end }}
+          {{- end }}
           {{- if or .Values.webdevopsPhpProductionEnvs .Values.trustedProxiesEnv }}
           env:
               {{- if .Values.webdevopsPhpProductionEnvs }}
