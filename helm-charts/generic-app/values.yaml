@@ -27,6 +27,7 @@ ingress:
 healthCheckPath: ""
 prometheus:
   enabled: false
+  port: 80
   path: "/metrics"
 serviceAccount:
   create: false

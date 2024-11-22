@@ -28,7 +28,7 @@ spec:
         checksum/envEncrypted: {{ .Values.envEncrypted | toString | sha256sum }}
         {{- if .Values.prometheus.enabled }}
         prometheus.io/scrape: "true"
-        prometheus.io/port: "8080"
+        prometheus.io/port: {{ .Values.prometheus.port | quote }}
         prometheus.io/path: {{ .Values.prometheus.path | quote }}
         {{- end }}
     spec:
