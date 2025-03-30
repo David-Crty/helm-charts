@@ -12,12 +12,14 @@ spec:
   tls:
     secretName: {{ $fullName }}-cert
   routes:
+    {{- range .Values.ingress.hosts }}
     - kind: Rule
-      match: Host(`{{ .Values.host }}`)
+      match: Host(`{{ . }}`)
       middlewares:
         - name: redirect-to-https
           namespace: traefik
       services:
         - name: {{ $fullName }}
           port: {{ $.Values.port }}
+    {{- end }}
 {{- end }}
